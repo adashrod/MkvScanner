@@ -1,0 +1,17 @@
+/.idea
+*.iml
+
+/ivy
+/lib
+
+/build
+/out
+/*.log*
+/target
+
+/FAKE_BD
+/*.mkv
+/bd.txt
+/bd_title.txt
+
+/todo.txt

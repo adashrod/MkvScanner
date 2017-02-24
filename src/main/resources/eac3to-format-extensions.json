@@ -1,0 +1,37 @@
+{
+    "Chapters": "txt",
+
+    "AAC": "aac",
+    "AC3": "ac3",
+    "AC3 EX": "ac3",
+    "AC3 Surround": "ac3",
+    "DTS": "dts",
+    "DTS Hi-Res": "dts",
+    "DTS Master Audio": [{
+        "extension": "dtshd"
+    }, {
+        "extension": "dts",
+        "flags": ["-core"]
+    }],
+    "DTS-ES": "dts",
+    "EAC3": "eac3",
+    "MP3": "mp3",
+    "RAW/PCM": "pcm",
+    "TrueHD": "thd+ac3",
+    "TrueHD/AC3": [{
+        "extension": "thd+ac3"
+    }, {
+        "extension": "ac3"
+    }],
+    "VORBIS": "ogg",
+
+    "ASS": "ass",
+    "PGS": "sup",
+    "SRT": "srt",
+
+    "MPEG2": "mkv",
+    "MPEGH/ISO/HEVC": "mkv",
+    "MS/VFW/FOURCC/XVID": "mkv",
+    "VC-1": "mkv",
+    "h264/AVC": "mkv"
+}
