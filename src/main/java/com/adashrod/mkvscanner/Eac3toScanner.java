@@ -411,7 +411,8 @@ public class Eac3toScanner implements FileScanner {
             }
             if (formatExtensionConfig == null) {
                 // skip track if format is not supported (VobSub)
-                logger.warn("unable to find extension config for " + track.getFormat());
+                logger.warn(String.format("unable to find extension config for %s. File: %s, title: %d, track: %d",
+                    track.getFormat(), fileToDemux.getName(), title, track.getNumber()));
                 return;
             }
 

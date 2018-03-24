@@ -23,6 +23,11 @@
     }, {
         "extension": "ac3"
     }],
+    "TrueHD/AC3 (Atmos)": [{
+        "extension": "thd+ac3"
+    }, {
+        "extension": "ac3"
+    }],
     "VORBIS": "ogg",
 
     "ASS": "ass",
