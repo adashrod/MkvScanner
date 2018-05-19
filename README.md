@@ -28,17 +28,17 @@ demuxed tracks are output into the directory specified in the Eac3toScanner cons
 
 ### adding as a dependency
 
-Page on [search.maven.org](http://search.maven.org/#artifactdetails%7Ccom.adashrod.mkvscanner%7Cmkvscanner%7C0.1.0%7Cpom)
+Page on [search.maven.org](http://search.maven.org/#artifactdetails%7Ccom.adashrod.mkvscanner%7Cmkvscanner%7C1.0.0%7Cpom)
 
 ##### Maven:
 ~~~~
 <dependency>
     <groupId>com.adashrod.mkvscanner</groupId>
     <artifactId>mkvscanner</artifactId>
-    <version>0.1.0</version>
+    <version>1.0.0</version>
 </dependency>
 ~~~~
 ##### Ivy:
 ~~~~
-<dependency org="com.adashrod.mkvscanner" name="mkvscanner" rev="0.1.0" />
+<dependency org="com.adashrod.mkvscanner" name="mkvscanner" rev="1.0.0" />
 ~~~~
