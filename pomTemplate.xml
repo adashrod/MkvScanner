@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>${ivy.pom.groupId}</groupId>
+    <artifactId>${ivy.pom.artifactId}</artifactId>
+    <packaging>${ivy.pom.packaging}</packaging>
+    <version>${ivy.pom.version}</version>
+    <name>MkvScanner</name>
+    <description>MkvScanner is a java API wrapper for eac3to</description>
+    <url>https://www.github.com/adashrod/MkvScanner</url>
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <url>https://www.github.com/adashrod/MkvScanner</url>
+        <connection>scm:git:git@github.com:adashrod/MkvScanner.git</connection>
+        <developerConnection>scm:git:git@github.com:adashrod/MkvScanner.git</developerConnection>
+    </scm>
+    <developers>
+        <developer>
+            <name>Aaron Rodriguez</name>
+            <email>adashrod@gmail.com</email>
+            <url>https://www.github.com/adashrod</url>
+        </developer>
+    </developers>
+</project>

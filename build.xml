@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="eac3to-scanner" basedir="." default="create-jar"
+<project name="mkv-scanner" basedir="." default="create-jar.runtime"
          xmlns:ivy="antlib:org.apache.ivy.ant"
          xmlns:cs="antlib:com.puppycrawl.tools.checkstyle.ant"
          xmlns:if="ant:if"
          xmlns:unless="ant:unless">
 
-    <property name="ivy.install.version"       value="2.4.0"/>
+    <property name="ivy.install.version"       value="2.5.0"/>
     <property name="ivy.jar.dir"               value="${basedir}/ivy"/>
     <property name="ivy.jar.file"              value="${ivy.jar.dir}/ivy.jar"/>
     <property name="src.main.dir"              value="src/main/java"/>
@@ -13,6 +13,9 @@
     <property name="lib.dir"                   value="lib"/>
     <property name="build.main.dir"            value="build"/>
     <property name="target.dir"                value="target"/>
+    <property name="dist.dir"                  value="dist"/>
+    <property name="javadoc.dir"               value="javadoc"/>
+    <property name="artifact-name"             value="mkvscanner"/>
     <property name="jar.file"                  value="com.adashrod-mkvscanner.jar"/>
 
     <path id="classpath.main">
@@ -22,6 +25,10 @@
     </path>
 
     <available file="${ivy.jar.file}" property="ivy.installed"/>
+
+    <target name="ivy.load-settings">
+        <ivy:settings file="ivySettings.xml"/>
+    </target>
 
     <target name="ivy.download" unless="ivy.installed" description="downloads the ivy jar file">
         <echo message="downloading ivy..."/>
@@ -37,8 +44,8 @@
         <taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
     </target>
 
-    <target name="ivy.resolve.main" depends="ivy.install" description="resolve ivy dependencies for running the server">
-        <ivy:retrieve pattern="${lib.dir}/[conf]/[type]/[organisation]-[artifact]-[revision].[ext]"/>
+    <target name="ivy.resolve.main" depends="ivy.install, ivy.load-settings" description="resolve ivy dependencies for running the server">
+        <ivy:retrieve conf="runtime" pattern="${lib.dir}/[conf]/[organisation]-[artifact]-[revision].[ext]"/>
     </target>
 
     <target name="compile.main" depends="ivy.resolve.main" description="compile source">
@@ -54,9 +61,47 @@
         </copy>
     </target>
 
-    <target name="create-jar" depends="compile.main, copy.resources" description="creates a jar file in the target directory">
+    <target name="create-jar.runtime" depends="compile.main, copy.resources" description="creates a jar file in the target directory">
         <mkdir dir="${target.dir}"/>
         <jar destfile="${target.dir}/${jar.file}" basedir="${build.main.dir}"/>
+    </target>
+
+    <target name="create-jar.sources">
+        <jar destfile="dist/mkvscanner-${ivy.revision}-sources.jar">
+            <fileset dir="${src.main.dir}" includes="**/*.java"/>
+        </jar>
+    </target>
+
+    <target name="create-jar.javadoc">
+        <javadoc sourcepath="${src.main.dir}" destdir="javadoc" classpathref="classpath.main"/>
+    </target>
+
+    <target name="publish" depends="ivy.resolve.main, create-jar.sources, create-jar.runtime, create-jar.javadoc">
+        <copy file="${target.dir}/${jar.file}" tofile="${dist.dir}/${artifact-name}-${ivy.revision}.jar"/>
+        <ivy:makepom ivyfile="ivy.xml" templatefile="pomTemplate.xml" pomfile="${dist.dir}/${artifact-name}-${ivy.revision}.pom"/>
+        <jar basedir="javadoc" file="${dist.dir}/${artifact-name}-${ivy.revision}-javadoc.jar"/>
+        <exec executable="sh">
+            <arg value="-c"/>
+            <arg value="gpg2 -a -b --yes ${dist.dir}/${artifact-name}-${ivy.revision}.jar"/>
+        </exec>
+        <exec executable="sh">
+            <arg value="-c"/>
+            <arg value="gpg2 -a -b --yes ${dist.dir}/${artifact-name}-${ivy.revision}-sources.jar"/>
+        </exec>
+        <exec executable="sh">
+            <arg value="-c"/>
+            <arg value="gpg2 -a -b --yes ${dist.dir}/${artifact-name}-${ivy.revision}-javadoc.jar"/>
+        </exec>
+        <exec executable="sh">
+            <arg value="-c"/>
+            <arg value="gpg2 -a -b --yes ${dist.dir}/${artifact-name}-${ivy.revision}.pom"/>
+        </exec>
+        <fail unless="upload.user" message="parameter upload.user required"/>
+        <fail unless="upload.password" message="parameter upload.password required"/>
+        <fail unless="upload.status" message="parameter upload.status must be one of [&quot;snapshot&quot;, &quot;release&quot;]"/>
+        <fail unless="upload.resolver" message="parameter upload.resolver must be one of [&quot;local&quot;, &quot;nexus-snapshots&quot;, &quot;nexus-staging&quot;]"/>
+        <ivy:publish status="${upload.status}" resolver="${upload.resolver}" overwrite="true"
+                     artifactspattern="${dist.dir}/[artifact]-[revision](-[classifier]).[ext]" publishivy="false"/>
     </target>
 
     <target name="clean" description="cleans all build artifacts">
@@ -64,6 +109,8 @@
             <fileset dir="${lib.dir}"/>
             <fileset dir="${build.main.dir}"/>
             <fileset dir="${target.dir}"/>
+            <fileset dir="${dist.dir}"/>
+            <fileset dir="${javadoc.dir}"/>
         </delete>
     </target>
 
@@ -71,7 +118,7 @@
         <delete dir="${ivy.jar.dir}"/>
     </target>
 
-    <target name="clean-cache" depends="ivy.install" description="clean the ivy cache">
+    <target name="ivy.clean-cache" depends="ivy.install" description="clean the ivy cache">
         <ivy:cleancache/>
     </target>
 </project>

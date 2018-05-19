@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivysettings>
+    <settings defaultResolver="default-chain"/>
+    <credentials host="oss.sonatype.org" realm="Sonatype Nexus Repository Manager" username="${upload.user}" passwd="${upload.password}"/>
+    <property name="nexus-snapshots" value="https://oss.sonatype.org/content/repositories/snapshots"/>
+    <property name="nexus-staging" value="https://oss.sonatype.org/service/local/staging/deploy/maven2"/>
+    <property name="nexus-releases" value="http://localhost:8081/nexus/content/repositories/releases"/>
+    <property name="nexus-public" value="http://localhost:8081/nexus/content/groups/public"/>
+    <resolvers>
+        <filesystem name="local">
+            <ivy pattern="${ivy.default.ivy.user.dir}/local/[organisation]/[module]/[revision]/ivys/ivy.xml"/>
+            <artifact pattern="${ivy.default.ivy.user.dir}/local/[organisation]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext]"/>
+        </filesystem>
+        <ibiblio name="ibiblio" m2compatible="true"/>
+
+        <ibiblio name="nexus-snapshots" m2compatible="true" root="${nexus-snapshots}"/>
+        <ibiblio name="nexus-staging" m2compatible="true" root="${nexus-staging}"/>
+        <ibiblio name="nexus-releases" m2compatible="true" root="${nexus-releases}"/>
+        <ibiblio name="nexus" m2compatible="true" root="${nexus-public}"/>
+
+        <chain name="default-chain">
+            <resolver ref="local"/>
+            <resolver ref="ibiblio"/>
+        </chain>
+    </resolvers>
+</ivysettings>

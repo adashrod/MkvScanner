@@ -16,13 +16,15 @@ import java.util.Set;
 public interface FileScanner {
     /**
      * Runs the mkvscanner executable with the supplied arguments and returns the stdout
-     * @param file the target file to run the mkvscanner on
+     * @param file      the target file to run the mkvscanner on
+     * @param arguments the rest of the arguments to pass to the scanner executable
      * @return string output of the executable: stdout for successful exits and stderr for errors
      * @throws NotBluRayDirectoryException scanned a directory that wasn't a BD dir
      * @throws CorruptBluRayStructureException BD dir can be scanned, but the titles can't
      * @throws UnreadableFileException trying to scan a file that isn't a video container (non-mkv/m2ts)
      * @throws FormatConversionException happens when trying to e.g. demux an AC3 track to .sup
      * @throws DemuxerException error output from mkvscanner couldn't be parsed
+     * @throws IOException thrown by executable process
      */
     String exec(File file, String... arguments) throws DemuxerException, IOException;
 
@@ -32,6 +34,7 @@ public interface FileScanner {
      * @return an object representing the video and track data of the given file
      * @throws UnreadableFileException trying to scan a file that isn't a video container (non-mkv/m2ts)
      * @throws DemuxerException error output from mkvscanner couldn't be parsed
+     * @throws IOException thrown by executable process
      */
     Video scanAndParseFile(File file) throws DemuxerException, IOException;
 
@@ -43,6 +46,7 @@ public interface FileScanner {
      * @throws NotBluRayDirectoryException scanned a directory that wasn't a BD dir
      * @throws CorruptBluRayStructureException BD dir can be scanned, but the titles can't
      * @throws DemuxerException error output from mkvscanner couldn't be parsed
+     * @throws IOException thrown by executable process
      */
     Set<Integer> scanBluRayDir(File bluRayDirectory) throws DemuxerException, IOException;
 
@@ -54,6 +58,7 @@ public interface FileScanner {
      * @throws NotBluRayDirectoryException scanned a directory that wasn't a BD dir
      * @throws CorruptBluRayStructureException BD dir can be scanned, but the titles can't
      * @throws DemuxerException error output from mkvscanner couldn't be parsed
+     * @throws IOException thrown by executable process
      */
     Video scanAndParseBluRayTitle(File bluRayDirectory, int title) throws DemuxerException, IOException;
 
@@ -67,6 +72,7 @@ public interface FileScanner {
      * @throws NotBluRayDirectoryException scanned a directory that wasn't a BD dir
      * @throws CorruptBluRayStructureException BD dir can be scanned, but the titles can't
      * @throws DemuxerException error output from mkvscanner couldn't be parsed
+     * @throws IOException thrown by executable process
      */
     Collection<String> demuxBluRayTitleByTracks(File bluRayDirectory, int title, Collection<Integer> tracksToInclude) throws DemuxerException, IOException;
 
@@ -77,6 +83,10 @@ public interface FileScanner {
      * @param title              which title on the BD structure to scan
      * @param languagesToInclude tracks are included in demuxing if their language is included here
      * @return output filenames created by the demuxing (just the names, not the fully qualified absolute names)
+     * @throws NotBluRayDirectoryException scanned a directory that wasn't a BD dir
+     * @throws CorruptBluRayStructureException BD dir can be scanned, but the titles can't
+     * @throws DemuxerException error output from mkvscanner couldn't be parsed
+     * @throws IOException thrown by executable process
      */
     Collection<String> demuxBluRayTitleByLanguages(File bluRayDirectory, int title, Collection<String> languagesToInclude) throws DemuxerException, IOException;
 
@@ -88,6 +98,7 @@ public interface FileScanner {
      * @return output filenames created by the demuxing (just the names, not the fully qualified absolute names)
      * @throws UnreadableFileException trying to scan a file that isn't a video container (non-mkv/m2ts)
      * @throws DemuxerException error output from mkvscanner couldn't be parsed
+     * @throws IOException thrown by executable process
      */
     Collection<String> demuxFileByTracks(File file, Collection<Integer> tracksToInclude) throws DemuxerException, IOException;
 
@@ -99,6 +110,7 @@ public interface FileScanner {
      * @return output filenames created by the demuxing (just the names, not the fully qualified absolute names)
      * @throws UnreadableFileException trying to scan a file that isn't a video container (non-mkv/m2ts)
      * @throws DemuxerException error output from mkvscanner couldn't be parsed
+     * @throws IOException thrown by executable process
      */
     Collection<String> demuxFileByLanguages(File file, Collection<String> languagesToInclude) throws DemuxerException, IOException;
 }
