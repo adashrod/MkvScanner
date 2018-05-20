@@ -1,6 +1,7 @@
 package com.adashrod.mkvscanner.util;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,7 +15,7 @@ import java.io.InputStreamReader;
  * This prevents that scenario while allowing the user to get the content of the stream afterward.
  */
 public class StreamConsumer extends Thread {
-    private final Logger logger = Logger.getLogger(StreamConsumer.class);
+    private final Logger logger = LoggerFactory.getLogger(StreamConsumer.class);
 
     private InputStream inputStream = null;
     private final StringBuilder streamContent = new StringBuilder();
@@ -32,7 +33,7 @@ public class StreamConsumer extends Thread {
                 streamContent.append(line).append('\n');
             }
         } catch (final IOException ioe) {
-            logger.error(ioe);
+            logger.error("error reading stream", ioe);
         }
     }
 

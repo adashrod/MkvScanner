@@ -8,7 +8,10 @@ import com.adashrod.mkvscanner.util.StreamConsumer;
 import com.adashrod.mkvscanner.util.StringLineIterator;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -33,7 +36,8 @@ import java.util.regex.Pattern;
  * Implementation of FileScanner that uses eac3to for scanning and demuxing.
  */
 public class Eac3toScanner implements FileScanner {
-    private final Logger logger = Logger.getLogger(Eac3toScanner.class);
+    private final Logger logger = LoggerFactory.getLogger(Eac3toScanner.class);
+    Marker fatal = MarkerFactory.getMarker("FATAL");
 
     private final Pattern videoIndicator = Pattern.compile("\\d+[xip](\\d+)?[xip]?.*"),
         audioIndicator = Pattern.compile("\\d+(\\.|/)\\d+\\s*(\\(strange setup\\))?\\s*channels"),
@@ -54,13 +58,16 @@ public class Eac3toScanner implements FileScanner {
             loadEac3toLanguages();
             loadEac3toFormatExtensions();
         } catch (final IOException ioe) {
-            logger.fatal("Config error: " + ioe.getMessage());
+            logger.error(fatal, "Config error: " + ioe.getMessage());
             throw new RuntimeException("Config error: " + ioe.getMessage());
         }
     }
 
     private void loadEac3toLanguages() throws IOException {
         final InputStream inputStream = getClass().getResourceAsStream("/eac3to-languages.txt");
+        if (inputStream == null) {
+            throw new IOException("/eac3to-languages.txt is missing from mkvscanner jar!");
+        }
         final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         String line;
         while ((line = reader.readLine()) != null) {
@@ -73,6 +80,9 @@ public class Eac3toScanner implements FileScanner {
     @SuppressWarnings("unchecked")
     private void loadEac3toFormatExtensions() throws IOException {
         final InputStream inputStream = getClass().getResourceAsStream("/eac3to-format-extensions.json");
+        if (inputStream == null) {
+            throw new IOException("/eac3to-format-extensions.json is missing from mkvscanner jar!");
+        }
         final ObjectMapper jsonMapper = new ObjectMapper();
         final Map<String, Object> json = jsonMapper.readValue(inputStream, new TypeReference<Map<String, Object>>(){});
 
@@ -109,7 +119,7 @@ public class Eac3toScanner implements FileScanner {
             exitValue = process.waitFor();
         } catch (final InterruptedException ie) {
             process.destroy();
-            logger.error(ie);// todo: propagate a wrapper exception or re-throw; if not re-throwing, re-interrupt
+            logger.error("process interrupted", ie);// todo: propagate a wrapper exception or re-throw; if not re-throwing, re-interrupt
             return null;
         }
 
@@ -456,7 +466,7 @@ public class Eac3toScanner implements FileScanner {
      * @param content
      */
     private void handleParseException(final ParseException pe, final String filename, final String content) {
-        logger.fatal(String.format("failed to parse eac3to output: filename=%s, content=%s", filename, content), pe);
+        logger.error(fatal, String.format("failed to parse eac3to output: filename=%s, content=%s", filename, content), pe);
         throw new RuntimeException(String.format("Possible bug in MkvScanner. Failed to parse eac3to output. filename=%s, content=%s, %s at index %d",
             filename, content, pe.getMessage(), pe.getErrorOffset()));
     }
