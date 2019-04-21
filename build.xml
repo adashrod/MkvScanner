@@ -5,7 +5,7 @@
          xmlns:if="ant:if"
          xmlns:unless="ant:unless">
 
-    <property name="ivy.install.version"       value="2.5.0"/>
+    <property name="ivy.install.version"       value="2.4.0"/>
     <property name="ivy.jar.dir"               value="${basedir}/ivy"/>
     <property name="ivy.jar.file"              value="${ivy.jar.dir}/ivy.jar"/>
     <property name="src.main.dir"              value="src/main/java"/>
@@ -15,8 +15,7 @@
     <property name="target.dir"                value="target"/>
     <property name="dist.dir"                  value="dist"/>
     <property name="javadoc.dir"               value="javadoc"/>
-    <property name="artifact-name"             value="mkvscanner"/>
-    <property name="jar.file"                  value="com.adashrod-mkvscanner.jar"/>
+    <property name="artifact.name"             value="mkvscanner"/>
 
     <path id="classpath.main">
         <fileset dir="${lib.dir}/runtime">
@@ -26,7 +25,7 @@
 
     <available file="${ivy.jar.file}" property="ivy.installed"/>
 
-    <target name="ivy.load-settings">
+    <target name="ivy.load-settings" depends="ivy.install">
         <ivy:settings file="ivySettings.xml"/>
     </target>
 
@@ -63,11 +62,11 @@
 
     <target name="create-jar.runtime" depends="compile.main, copy.resources" description="creates a jar file in the target directory">
         <mkdir dir="${target.dir}"/>
-        <jar destfile="${target.dir}/${jar.file}" basedir="${build.main.dir}"/>
+        <jar destfile="${target.dir}/${artifact.name}.jar" basedir="${build.main.dir}"/>
     </target>
 
     <target name="create-jar.sources">
-        <jar destfile="dist/mkvscanner-${ivy.revision}-sources.jar">
+        <jar destfile="${dist.dir}/${artifact.name}-${ivy.revision}-sources.jar">
             <fileset dir="${src.main.dir}" includes="**/*.java"/>
         </jar>
     </target>
@@ -76,32 +75,54 @@
         <javadoc sourcepath="${src.main.dir}" destdir="javadoc" classpathref="classpath.main"/>
     </target>
 
-    <target name="publish" depends="ivy.resolve.main, create-jar.sources, create-jar.runtime, create-jar.javadoc">
-        <copy file="${target.dir}/${jar.file}" tofile="${dist.dir}/${artifact-name}-${ivy.revision}.jar"/>
-        <ivy:makepom ivyfile="ivy.xml" templatefile="pomTemplate.xml" pomfile="${dist.dir}/${artifact-name}-${ivy.revision}.pom"/>
-        <jar basedir="javadoc" file="${dist.dir}/${artifact-name}-${ivy.revision}-javadoc.jar"/>
+    <target name="publish" depends="ivy.resolve.main, publish.validate, create-jar.sources, create-jar.runtime, create-jar.javadoc">
+        <copy file="${target.dir}/${artifact.name}.jar" tofile="${dist.dir}/${artifact.name}-${ivy.revision}.jar"/>
+        <ivy:makepom ivyfile="ivy.xml" templatefile="pomTemplate.xml" pomfile="${dist.dir}/${artifact.name}-${ivy.revision}.pom"/>
+        <jar basedir="javadoc" file="${dist.dir}/${artifact.name}-${ivy.revision}-javadoc.jar"/>
         <exec executable="sh">
             <arg value="-c"/>
-            <arg value="gpg2 -a -b --yes ${dist.dir}/${artifact-name}-${ivy.revision}.jar"/>
+            <arg value="gpg2 -a -b --yes ${dist.dir}/${artifact.name}-${ivy.revision}.jar"/>
         </exec>
         <exec executable="sh">
             <arg value="-c"/>
-            <arg value="gpg2 -a -b --yes ${dist.dir}/${artifact-name}-${ivy.revision}-sources.jar"/>
+            <arg value="gpg2 -a -b --yes ${dist.dir}/${artifact.name}-${ivy.revision}-sources.jar"/>
         </exec>
         <exec executable="sh">
             <arg value="-c"/>
-            <arg value="gpg2 -a -b --yes ${dist.dir}/${artifact-name}-${ivy.revision}-javadoc.jar"/>
+            <arg value="gpg2 -a -b --yes ${dist.dir}/${artifact.name}-${ivy.revision}-javadoc.jar"/>
         </exec>
         <exec executable="sh">
             <arg value="-c"/>
-            <arg value="gpg2 -a -b --yes ${dist.dir}/${artifact-name}-${ivy.revision}.pom"/>
+            <arg value="gpg2 -a -b --yes ${dist.dir}/${artifact.name}-${ivy.revision}.pom"/>
         </exec>
         <fail unless="upload.user" message="parameter upload.user required"/>
         <fail unless="upload.password" message="parameter upload.password required"/>
-        <fail unless="upload.status" message="parameter upload.status must be one of [&quot;snapshot&quot;, &quot;release&quot;]"/>
-        <fail unless="upload.resolver" message="parameter upload.resolver must be one of [&quot;local&quot;, &quot;nexus-snapshots&quot;, &quot;nexus-staging&quot;]"/>
         <ivy:publish status="${upload.status}" resolver="${upload.resolver}" overwrite="true"
                      artifactspattern="${dist.dir}/[artifact]-[revision](-[classifier]).[ext]" publishivy="false"/>
+    </target>
+
+    <target name="publish.validate">
+        <script language="javascript">
+            var ivyVersion = project.getProperty("ivy.revision");
+            var uploadResolver = project.getProperty("upload.resolver");
+            var errors = [];
+            if (ivyVersion.toLowerCase().endsWith("snapshot")) {
+                if (uploadResolver !== "nexus-snapshots" &amp;&amp; uploadResolver !== "local") {
+                    errors.push("upload.resolver must be \"nexus-snapshots\" or \"local\" for a snapshot version: " + ivyVersion);
+                }
+                project.setProperty("upload.status", "snapshot");
+            } else {
+                if (uploadResolver !== "nexus-staging" &amp;&amp; uploadResolver !== "local") {
+                    errors.push("upload.resolver must be \"nexus-staging\" or \"local\" for a non-snapshot version: " + ivyVersion);
+                }
+                project.setProperty("upload.status", "release");
+            }
+            if (errors.length > 0) {
+                project.setProperty("publish.validation-failed", true);
+                project.setProperty("publish.errors", errors.join("; "));
+            }
+        </script>
+        <fail if="publish.validation-failed" message="${publish.errors}"/>
     </target>
 
     <target name="clean" description="cleans all build artifacts">
