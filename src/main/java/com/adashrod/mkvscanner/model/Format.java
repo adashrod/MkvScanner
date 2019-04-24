@@ -5,6 +5,9 @@ package com.adashrod.mkvscanner.model;
  */
 public class Format {
     private String name;
+    /**
+     * todo: replace with enum
+     */
     private String formatType;
 
     public String getName() {
