@@ -434,7 +434,7 @@ public class Eac3toScanner implements FileScanner {
                 final StringBuilder outputFilenameBuilder = new StringBuilder(outputDirectory.getAbsolutePath())
                     .append(File.separatorChar)
                     .append(outputBase);
-                // titlePiece will be empty when demuxing a file
+                // title will be empty when demuxing a file
                 if (title != null) {
                     outputFilenameBuilder.append("_ti").append(title);
                 }
@@ -444,6 +444,10 @@ public class Eac3toScanner implements FileScanner {
                     outputFilenameBuilder.append("_").append(ec.getFlags().stream().reduce((final String s1, final String s2) -> {
                         return s1 + s2;
                     }).get().replaceAll("[\\-_\\s]*", ""));
+                }
+                if (!track.getFormat().getFormatType().equals("Chapters")) {
+                    final String friendlyFormatName = track.getFormat().getName().replaceAll("[/\\(\\)\\s]", "_");
+                    outputFilenameBuilder.append("_").append(friendlyFormatName);
                 }
                 outputFilenameBuilder.append(".").append(ec.getExtension());
                 final File outputFile = new File(outputFilenameBuilder.toString());
