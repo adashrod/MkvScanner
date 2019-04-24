@@ -37,10 +37,10 @@ Page on [mvnrepository.com](http://mvnrepository.com/artifact/com.adashrod.mkvsc
 <dependency>
     <groupId>com.adashrod.mkvscanner</groupId>
     <artifactId>mkvscanner</artifactId>
-    <version>1.0.1</version>
+    <version>1.1.0</version>
 </dependency>
 ~~~~
 ##### Ivy:
 ~~~~
-<dependency org="com.adashrod.mkvscanner" name="mkvscanner" rev="1.0.1" />
+<dependency org="com.adashrod.mkvscanner" name="mkvscanner" rev="1.1.0" />
 ~~~~
