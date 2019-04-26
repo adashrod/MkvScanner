@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ivysettings>
     <settings defaultResolver="default-chain"/>
-    <credentials host="oss.sonatype.org" realm="Sonatype Nexus Repository Manager" username="${upload.user}" passwd="${upload.password}"/>
+    <credentials host="oss.sonatype.org" realm="Sonatype Nexus Repository Manager" username="${publish.user}" passwd="${publish.password}"/>
     <property name="nexus-snapshots" value="https://oss.sonatype.org/content/repositories/snapshots"/>
     <property name="nexus-staging" value="https://oss.sonatype.org/service/local/staging/deploy/maven2"/>
     <property name="nexus-releases" value="http://localhost:8081/nexus/content/repositories/releases"/>
