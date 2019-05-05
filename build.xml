@@ -63,14 +63,14 @@
         <jar destfile="${target.dir}/${artifact.name}.jar" basedir="${build.main.dir}"/>
     </target>
 
-    <target name="create-jar.sources">
+    <target name="create-jar.sources" depends="ivy.resolve.main">
         <jar destfile="${dist.dir}/${artifact.name}-${ivy.revision}-sources.jar">
             <fileset dir="${src.main.dir}" includes="**/*.java"/>
             <fileset dir="${resources.main.dir}" includes="**/*"/>
         </jar>
     </target>
 
-    <target name="create-jar.javadoc">
+    <target name="create-jar.javadoc" depends="ivy.resolve.main">
         <javadoc sourcepath="${src.main.dir}" destdir="${javadoc.dir}" classpathref="classpath.ivy-runtime"/>
         <jar basedir="${javadoc.dir}" file="${dist.dir}/${artifact.name}-${ivy.revision}-javadoc.jar"/>
     </target>
