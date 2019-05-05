@@ -75,28 +75,26 @@
         <jar basedir="${javadoc.dir}" file="${dist.dir}/${artifact.name}-${ivy.revision}-javadoc.jar"/>
     </target>
 
-    <target name="publish" depends="ivy.resolve.main, publish.validate, create-jar.sources, create-jar.runtime, create-jar.javadoc" description="publishes artifact to an ivy/maven-compliant repository. Required parameters: publish.resolver, (and for non-local publishing) publish.user, publish.password">
+    <target name="publish" depends="ivy.resolve.main, publish.validate, create-jar.sources, create-jar.runtime, create-jar.javadoc" description="publishes artifact to an ivy/maven-compliant repository. Required parameters: publish.resolver, key.password, (and for non-local publishing) publish.user, publish.password">
         <copy file="${target.dir}/${artifact.name}.jar" tofile="${dist.dir}/${artifact.name}-${ivy.revision}.jar"/>
         <ivy:makepom ivyfile="ivy.xml" templatefile="pomTemplate.xml" pomfile="${dist.dir}/${artifact.name}-${ivy.revision}.pom"/>
-        <exec executable="sh">
-            <arg value="-c"/>
-            <arg value="gpg2 -a -b --yes ${dist.dir}/${artifact.name}-${ivy.revision}.jar"/>
-        </exec>
-        <exec executable="sh">
-            <arg value="-c"/>
-            <arg value="gpg2 -a -b --yes ${dist.dir}/${artifact.name}-${ivy.revision}-sources.jar"/>
-        </exec>
-        <exec executable="sh">
-            <arg value="-c"/>
-            <arg value="gpg2 -a -b --yes ${dist.dir}/${artifact.name}-${ivy.revision}-javadoc.jar"/>
-        </exec>
-        <exec executable="sh">
-            <arg value="-c"/>
-            <arg value="gpg2 -a -b --yes ${dist.dir}/${artifact.name}-${ivy.revision}.pom"/>
-        </exec>
+        <sign-file file="${dist.dir}/${artifact.name}-${ivy.revision}.jar"/>
+        <sign-file file="${dist.dir}/${artifact.name}-${ivy.revision}-sources.jar"/>
+        <sign-file file="${dist.dir}/${artifact.name}-${ivy.revision}-javadoc.jar"/>
+        <sign-file file="${dist.dir}/${artifact.name}-${ivy.revision}.pom"/>
         <ivy:publish status="${publish.status}" resolver="${publish.resolver}" overwrite="true"
                      artifactspattern="${dist.dir}/[artifact]-[revision](-[classifier]).[ext]" publishivy="false"/>
     </target>
+
+    <macrodef name="sign-file">
+        <attribute name="file"/>
+        <sequential>
+            <exec executable="sh">
+                <arg value="-c"/>
+                <arg value="gpg2 -a -b --yes --pinentry-mode loopback --passphrase &quot;${key.password}&quot; @{file}"/>
+            </exec>
+        </sequential>
+    </macrodef>
 
     <target name="publish.validate">
         <script language="javascript">
@@ -104,7 +102,11 @@
             var publishResolver = project.getProperty("publish.resolver");
             var publishUser = project.getProperty("publish.user") || "";
             var publishPassword = project.getProperty("publish.password") || "";
+            var keyPassword = project.getProperty("key.password") || "";
             var errors = [];
+            if (keyPassword.length === 0) {
+                errors.push("parameter key.password is required for gpg to sign artifacts");
+            }
             if (publishResolver === "nexus-staging" || publishResolver === "nexus-snapshots") {
                 if (publishUser.length === 0) {
                     errors.push("parameter publish.user required when publishing to " + publishResolver);
