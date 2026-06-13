@@ -69,13 +69,13 @@
     </target>
 
     <target name="junit.install" depends="ivy.resolve.test" unless="junit.installed" description="installs junit libs into ANT_HOME">
-        <echo message="installing ant junit libs to ${ant.home}; IF THIS FAILS, YOU MUST FIRST RUN 'sudo ant junit.install'"/>
-        <copy file="lib/test/org.junit.jupiter-junit-jupiter-api-5.4.2.jar" tofile="${ant.home}/lib/junit-jupiter-api.jar"/>
-        <copy file="lib/test/org.junit.jupiter-junit-jupiter-engine-5.4.2.jar" tofile="${ant.home}/lib/junit-jupiter-engine.jar"/>
-        <copy file="lib/test/org.junit.platform-junit-platform-commons-1.4.2.jar" tofile="${ant.home}/lib/junit-platform-commons.jar"/>
-        <copy file="lib/test/org.junit.platform-junit-platform-engine-1.4.2.jar" tofile="${ant.home}/lib/junit-platform-engine.jar"/>
-        <copy file="lib/test/org.junit.platform-junit-platform-launcher-1.4.2.jar" tofile="${ant.home}/lib/junit-platform-launcher.jar"/>
-        <copy file="lib/test/org.opentest4j-opentest4j-1.1.1.jar" tofile="${ant.home}/lib/opentest4j.jar"/>
+<!--        <echo message="installing ant junit libs to ${ant.home}; IF THIS FAILS, YOU MUST FIRST RUN 'sudo ant junit.install'"/>-->
+<!--        <copy file="lib/test/org.junit.jupiter-junit-jupiter-api-5.4.2.jar" tofile="${ant.home}/lib/junit-jupiter-api.jar"/>-->
+<!--        <copy file="lib/test/org.junit.jupiter-junit-jupiter-engine-5.4.2.jar" tofile="${ant.home}/lib/junit-jupiter-engine.jar"/>-->
+<!--        <copy file="lib/test/org.junit.platform-junit-platform-commons-1.4.2.jar" tofile="${ant.home}/lib/junit-platform-commons.jar"/>-->
+<!--        <copy file="lib/test/org.junit.platform-junit-platform-engine-1.4.2.jar" tofile="${ant.home}/lib/junit-platform-engine.jar"/>-->
+<!--        <copy file="lib/test/org.junit.platform-junit-platform-launcher-1.4.2.jar" tofile="${ant.home}/lib/junit-platform-launcher.jar"/>-->
+<!--        <copy file="lib/test/org.opentest4j-opentest4j-1.1.1.jar" tofile="${ant.home}/lib/opentest4j.jar"/>-->
     </target>
 
     <target name="compile.main" depends="ivy.resolve.main" description="compile source">
