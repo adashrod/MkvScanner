@@ -4,7 +4,9 @@ import com.adashrod.mkvscanner.model.Format;
 import com.adashrod.mkvscanner.model.Track;
 import com.adashrod.mkvscanner.model.Video;
 import com.adashrod.mkvscanner.util.FormatExtensionConfig;
-import com.adashrod.mkvscanner.util.StreamConsumer;
+import com.adashrod.mkvscanner.util.ProcessBuilderRunner;
+import com.adashrod.mkvscanner.util.ProcessResult;
+import com.adashrod.mkvscanner.util.ProcessRunner;
 import com.adashrod.mkvscanner.util.StringLineIterator;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,12 +50,22 @@ public class Eac3toScanner implements FileScanner {
 
     private final String executableLocation;
     private final File outputDirectory;
+    private final ProcessRunner processRunner;
     private final Collection<String> eac3toLanguages = new HashSet<>();
     private final Map<String, FormatExtensionConfig> formatExtensionConfigs = new HashMap<>();
 
     public Eac3toScanner(final String executableLocation, final File outputDirectory) {
+        this(executableLocation, outputDirectory, new ProcessBuilderRunner());
+    }
+
+    /**
+     * Package-private constructor that allows injecting a {@link ProcessRunner}, used by tests to feed fake process
+     * output (stdout/exit code) without launching the real executable.
+     */
+    Eac3toScanner(final String executableLocation, final File outputDirectory, final ProcessRunner processRunner) {
         this.executableLocation = Objects.requireNonNull(executableLocation, "Eac3toScanner.executableLocation can't be null");
         this.outputDirectory = Objects.requireNonNull(outputDirectory, "Eac3toScanner.outputDirectory can't be null");
+        this.processRunner = Objects.requireNonNull(processRunner, "Eac3toScanner.processRunner can't be null");
         try {
             loadEac3toLanguages();
             loadEac3toFormatExtensions();
@@ -105,29 +117,19 @@ public class Eac3toScanner implements FileScanner {
         command.add(executableLocation);
         command.add(file.getPath());
         Collections.addAll(command, arguments);
-        final ProcessBuilder builder = new ProcessBuilder(command);
-        Process process = null;
-        final int exitValue;
-        final StreamConsumer stdOut;
-        final StreamConsumer stdErr;
+        final ProcessResult result;
         try {
-            process = builder.start();
-            stdOut = new StreamConsumer(process.getInputStream());
-            stdErr = new StreamConsumer(process.getErrorStream());
-            stdOut.start();
-            stdErr.start();
-            exitValue = process.waitFor();
+            result = processRunner.run(command);
         } catch (final InterruptedException ie) {
-            process.destroy();
             logger.error("process interrupted", ie);// todo: propagate a wrapper exception or re-throw; if not re-throwing, re-interrupt
             return null;
         }
 
         // when piping eac3to output to a file or stream, each line is prepended by a bunch of backspace characters: \b
         // also: the first line has the eac3to progress bar "----" and some whitespace
-        final String output = stdOut.getStreamContent().replaceAll("\b", "").replaceAll("^-+\\s+", "").trim();
+        final String output = result.getStdout().replaceAll("\b", "").replaceAll("^-+\\s+", "").trim();
 
-        if (exitValue == 0) {
+        if (result.getExitValue() == 0) {
             return output;
         } else {
             final StringBuilder argumentsBuilder = new StringBuilder(file.getPath()).append(" ");

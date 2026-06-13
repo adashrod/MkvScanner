@@ -13,6 +13,12 @@
         "extension": "dts",
         "flags": ["-core"]
     }],
+    "DTS-HD Master Audio": [{
+        "extension": "dtshd"
+    }, {
+        "extension": "dts",
+        "flags": ["-core"]
+    }],
     "DTS-ES": "dts",
     "EAC3": "eac3",
     "MP3": "mp3",
