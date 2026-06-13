@@ -13,4 +13,4 @@ jobs:
                 with:
                     java-version: 11
             -   name: run test suite with ant
-                run: ant -noinput -buildfile build.xml test -DbuildEnv=ci
+                run: ant -v -noinput -buildfile build.xml test -DbuildEnv=ci
