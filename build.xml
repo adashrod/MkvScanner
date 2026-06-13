@@ -14,7 +14,6 @@
     <property name="build.main.dir"            value="${build.dir}/main"/>
     <property name="build.test.dir"            value="${build.dir}/test"/>
     <property name="target.dir"                value="target"/>
-    <property name="report.dir"                value="${build.test.dir}/report"/>
     <property name="dist.dir"                  value="dist"/>
     <property name="javadoc.dir"               value="javadoc"/>
     <property name="artifact.name"             value="mkvscanner"/>
@@ -29,18 +28,7 @@
             <include name="**/*.jar"/>
         </fileset>
     </path>
-    <path id="classpath.test">
-        <fileset dir="${lib.dir}/test">
-            <include name="**/*.jar"/>
-        </fileset>
-        <pathelement path="${build.main.dir}"/>
-        <pathelement path="${build.test.dir}"/>
-        <!-- so Eac3toScanner can load /eac3to-languages.txt and /eac3to-format-extensions.json at test time -->
-        <pathelement location="${resources.main.dir}"/>
-    </path>
-
     <available file="${ivy.jar.file}" property="ivy.installed"/>
-    <available file="${ant.home}/lib/junit-jupiter-api.jar" property="junit.installed"/>
 
     <target name="ivy.load-settings" depends="ivy.install">
         <ivy:settings file="ivySettings.xml"/>
@@ -66,16 +54,6 @@
 
     <target name="ivy.resolve.test" depends="ivy.install" description="resolve ivy dependencies for tests">
         <ivy:retrieve pattern="${lib.dir}/[conf]/[organisation]-[artifact]-[revision].[ext]" conf="test"/>
-    </target>
-
-    <target name="junit.install" depends="ivy.resolve.test" unless="junit.installed" description="installs junit libs into ANT_HOME">
-<!--        <echo message="installing ant junit libs to ${ant.home}; IF THIS FAILS, YOU MUST FIRST RUN 'sudo ant junit.install'"/>-->
-<!--        <copy file="lib/test/org.junit.jupiter-junit-jupiter-api-5.4.2.jar" tofile="${ant.home}/lib/junit-jupiter-api.jar"/>-->
-<!--        <copy file="lib/test/org.junit.jupiter-junit-jupiter-engine-5.4.2.jar" tofile="${ant.home}/lib/junit-jupiter-engine.jar"/>-->
-<!--        <copy file="lib/test/org.junit.platform-junit-platform-commons-1.4.2.jar" tofile="${ant.home}/lib/junit-platform-commons.jar"/>-->
-<!--        <copy file="lib/test/org.junit.platform-junit-platform-engine-1.4.2.jar" tofile="${ant.home}/lib/junit-platform-engine.jar"/>-->
-<!--        <copy file="lib/test/org.junit.platform-junit-platform-launcher-1.4.2.jar" tofile="${ant.home}/lib/junit-platform-launcher.jar"/>-->
-<!--        <copy file="lib/test/org.opentest4j-opentest4j-1.1.1.jar" tofile="${ant.home}/lib/opentest4j.jar"/>-->
     </target>
 
     <target name="compile.main" depends="ivy.resolve.main" description="compile source">
@@ -119,79 +97,48 @@
         <jar basedir="${javadoc.dir}" file="${dist.dir}/${artifact.name}-${ivy.revision}-javadoc.jar"/>
     </target>
 
-    <target name="test" depends="compile.test, junit.install" description="Runs all of the tests. Use test.name (FQ class name) and optionally test.functions (comma-separated list) to run specific tests">
-        <delete dir="${report.dir}" failonerror="false"/>
-        <mkdir dir="${report.dir}"/>
-        <junitlauncher failureproperty="test-failed">
-            <classpath refid="classpath.test"/>
-            <testclasses unless:set="test.name" outputdir="${report.dir}">
-                <fileset dir="${build.test.dir}">
-                    <include name="**/*" />
-                </fileset>
-                <listener type="legacy-xml" sendSysOut="true" sendSysErr="true"/>
-                <listener type="legacy-plain" sendSysOut="true" sendSysErr="true"/>
-            </testclasses>
-        </junitlauncher>
-        <condition property="test-one-class.test-some">
+    <target name="test" depends="compile.test" description="Runs the tests via the JUnit Platform ConsoleLauncher (forked). Use test.name (FQ class name) and optionally test.functions (a single method; include parameter types for methods that take them, e.g. myTest(java.io.File)) to run specific tests">
+        <!-- map the optional test.name/test.functions to ConsoleLauncher selectors; first-set wins, so order
+             from most specific to least -->
+        <condition property="test.select" value="--select-method=${test.name}#${test.functions}">
             <and>
                 <isset property="test.name"/>
                 <isset property="test.functions"/>
             </and>
         </condition>
-        <condition property="test-one-class.test-all">
-            <and>
-                <isset property="test.name"/>
-                <not><isset property="test.functions"/></not>
-            </and>
+        <condition property="test.select" value="--select-class=${test.name}">
+            <isset property="test.name"/>
         </condition>
-        <antcall target="-test.test-one-class.test-all-functions"/>
-        <antcall target="-test.test-one-class.test-some-functions"/>
-        <junitreport todir="${report.dir}">
-            <fileset dir="${report.dir}" includes="TEST-*.xml"/>
-            <report todir="${report.dir}"/>
-        </junitreport>
-        <concat fixlastline="true">
-            <fileset dir="${report.dir}" includes="*.txt"/>
-        </concat>
-        <fail if="test-failed" message="ONE OR MORE TESTS FAILED."/>
-    </target>
+        <property name="test.select" value="--scan-classpath=${build.test.dir}"/>
 
-    <target name="-test.test-one-class.test-all-functions" if="test-one-class.test-all">
-        <echo message="Testing `${test.name}`, all tests"/>
-        <junitlauncher failureproperty="test-failed">
-            <classpath refid="classpath.test"/>
-            <test outputdir="${report.dir}" name="${test.name}">
-                <listener type="legacy-xml" sendSysOut="true" sendSysErr="true"/>
-                <listener type="legacy-plain" sendSysOut="true" sendSysErr="true"/>
-            </test>
-        </junitlauncher>
-        <junitreport todir="${report.dir}">
-            <fileset dir="${report.dir}" includes="TEST-*.xml"/>
-            <report todir="${report.dir}"/>
-        </junitreport>
-        <concat fixlastline="true">
-            <fileset dir="${report.dir}" includes="*.txt"/>
-        </concat>
-        <fail if="test-failed" message="ONE OR MORE TESTS FAILED."/>
-    </target>
-
-    <target name="-test.test-one-class.test-some-functions" if="test-one-class.test-some">
-        <echo message="Testing `${test.name}#${test.functions}`"/>
-        <junitlauncher failureproperty="test-failed">
-            <classpath refid="classpath.test"/>
-            <test outputdir="${report.dir}" name="${test.name}" methods="${test.functions}">
-                <listener type="legacy-xml" sendSysOut="true" sendSysErr="true"/>
-                <listener type="legacy-plain" sendSysOut="true" sendSysErr="true"/>
-            </test>
-        </junitlauncher>
-        <junitreport todir="${report.dir}">
-            <fileset dir="${report.dir}" includes="TEST-*.xml"/>
-            <report todir="${report.dir}"/>
-        </junitreport>
-        <concat fixlastline="true">
-            <fileset dir="${report.dir}" includes="*.txt"/>
-        </concat>
-        <fail if="test-failed" message="ONE OR MORE TESTS FAILED."/>
+        <!-- forked, fully self-contained classpath: the console-standalone fat jar supplies all junit/platform
+             classes, so the other junit jars are excluded to avoid duplicate classes (mockito/jackson/slf4j/
+             byte-buddy/objenesis are kept). Nothing here references ${ant.home}. -->
+        <java fork="true" failonerror="false" resultproperty="test.exitcode"
+              classname="org.junit.platform.console.ConsoleLauncher">
+            <classpath>
+                <fileset dir="${lib.dir}/test" includes="org.junit.platform-junit-platform-console-standalone-*.jar"/>
+                <pathelement path="${build.main.dir}"/>
+                <pathelement path="${build.test.dir}"/>
+                <!-- so Eac3toScanner can load /eac3to-languages.txt and /eac3to-format-extensions.json -->
+                <pathelement location="${resources.main.dir}"/>
+                <fileset dir="${lib.dir}/test">
+                    <include name="*.jar"/>
+                    <exclude name="org.junit.*"/>
+                    <exclude name="junit-junit-*"/>
+                    <exclude name="org.opentest4j-*"/>
+                    <exclude name="org.apiguardian-*"/>
+                </fileset>
+            </classpath>
+            <arg line="${test.select}"/>
+            <arg value="--details=tree"/>
+            <arg value="--fail-if-no-tests"/>
+        </java>
+        <fail message="ONE OR MORE TESTS FAILED.">
+            <condition>
+                <not><equals arg1="${test.exitcode}" arg2="0"/></not>
+            </condition>
+        </fail>
     </target>
 
 
