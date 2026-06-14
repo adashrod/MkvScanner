@@ -1,6 +1,7 @@
 package com.adashrod.mkvscanner;
 
 import com.adashrod.mkvscanner.model.Format;
+import com.adashrod.mkvscanner.model.FormatType;
 import com.adashrod.mkvscanner.model.Iso639Language;
 import com.adashrod.mkvscanner.model.Track;
 import com.adashrod.mkvscanner.model.Video;
@@ -306,16 +307,13 @@ public class Eac3toScanner implements FileScanner {
                 //    accounting for all of the different metadata string types (48kHz, 448kbps, etc)
                 formatFound = true;
                 if (token.equals("Chapters")) {
-                    final Format matroskaChaptersFormat = new Format();
-                    matroskaChaptersFormat.setFormatType("Chapters");
-                    matroskaChaptersFormat.setName("Matroska");
-                    track.setFormat(matroskaChaptersFormat);
+                    track.setFormat(Format.OGM_CHAPTERS);
                 } else {
                     if (token.startsWith("Subtitle")) {
                         final String subtitleFormatName = parseSubtitleFormat(token); // PGS, VobSub, etc
                         final Format subtitleFormat = new Format();
                         subtitleFormat.setName(subtitleFormatName);
-                        subtitleFormat.setFormatType("Subtitles");
+                        subtitleFormat.setFormatType(FormatType.SUBTITLES);
                         track.setFormat(subtitleFormat);
                     } else {
                         // save for later, don't set track.format until we also have the formatType
@@ -326,7 +324,7 @@ public class Eac3toScanner implements FileScanner {
                 continue;
             }
             if (!formatTypeFound) {
-                final String formatType = tryToParseFormatTypeIndicator(token);
+                final FormatType formatType = tryToParseFormatTypeIndicator(token);
                 if (formatType != null) {
                     final Format format = new Format();
                     format.setName(formatString);
@@ -360,12 +358,12 @@ public class Eac3toScanner implements FileScanner {
         return matcher.matches() ? matcher.group(1) : null;
     }
 
-    private String tryToParseFormatTypeIndicator(final CharSequence token) {
-        final Map<Pattern, String> cachedFormatTypesByPattern = new HashMap<>();
-        cachedFormatTypesByPattern.put(videoIndicator, "Video");
-        cachedFormatTypesByPattern.put(audioIndicator, "Audio");
-        cachedFormatTypesByPattern.put(subtitlesIndicator, "Subtitles");
-        cachedFormatTypesByPattern.put(chaptersIndicator, "Chapters");
+    private FormatType tryToParseFormatTypeIndicator(final CharSequence token) {
+        final Map<Pattern, FormatType> cachedFormatTypesByPattern = new HashMap<>();
+        cachedFormatTypesByPattern.put(videoIndicator, FormatType.VIDEO);
+        cachedFormatTypesByPattern.put(audioIndicator, FormatType.AUDIO);
+        cachedFormatTypesByPattern.put(subtitlesIndicator, FormatType.SUBTITLES);
+        cachedFormatTypesByPattern.put(chaptersIndicator, FormatType.CHAPTERS);
         for (final Pattern p: new Pattern[]{videoIndicator, audioIndicator, subtitlesIndicator, chaptersIndicator}) {
             final Matcher m = p.matcher(token);
             if (m.matches()) {
@@ -401,9 +399,9 @@ public class Eac3toScanner implements FileScanner {
                 (languagesToInclude != null && languagesToInclude.contains(track.getLanguage()));
         }).forEach((final Track track) -> {
             FormatExtensionConfig formatExtensionConfig = formatExtensionConfigs.get(track.getFormat().getName());
-            if (formatExtensionConfig == null) {
+            if (formatExtensionConfig == null && track.getFormat().getFormatType() == FormatType.CHAPTERS) {
                 // for the unusual case of chapters being labeled "Chapters" by eac3to
-                formatExtensionConfig = formatExtensionConfigs.get(track.getFormat().getFormatType());
+                formatExtensionConfig = formatExtensionConfigs.get("Chapters");
             }
             if (formatExtensionConfig == null) {
                 // skip track if format is not supported (VobSub)
@@ -424,17 +422,23 @@ public class Eac3toScanner implements FileScanner {
                 if (title != null) {
                     outputFilenameBuilder.append("_ti").append(title);
                 }
-                outputFilenameBuilder.append("_tr").append(track.getNumber()).append("_").append(track.getLanguage().getCode());
+                outputFilenameBuilder.append("_tr").append(track.getNumber()).append("_");
+
+                if (track.getFormat().getFormatType() != FormatType.CHAPTERS) {
+                    final String friendlyFormatName = track.getFormat().getName().replaceAll("[/\\(\\)\\s]", "_");
+                    outputFilenameBuilder
+                        .append(track.getLanguage().getCode())
+                        .append("_").append(friendlyFormatName);
+                } else {
+                    outputFilenameBuilder.append("Chapters");
+                }
                 if (!ec.getFlags().isEmpty()) {
                     // identifier for differentiating between multiple demuxed instances of a single track
-                    outputFilenameBuilder.append("_").append(ec.getFlags().stream().reduce((final String s1, final String s2) -> {
-                        return s1 + s2;
-                    }).get().replaceAll("[\\-_\\s]*", ""));
+                    outputFilenameBuilder
+                        .append("_")
+                        .append(String.join("", ec.getFlags()).replaceAll("[\\-_\\s]*", ""));
                 }
-                if (!track.getFormat().getFormatType().equals("Chapters")) {
-                    final String friendlyFormatName = track.getFormat().getName().replaceAll("[/\\(\\)\\s]", "_");
-                    outputFilenameBuilder.append("_").append(friendlyFormatName);
-                }
+
                 outputFilenameBuilder.append(".").append(ec.getExtension());
                 final File outputFile = new File(outputFilenameBuilder.toString());
                 demuxArguments.add(outputFile.getAbsolutePath());
