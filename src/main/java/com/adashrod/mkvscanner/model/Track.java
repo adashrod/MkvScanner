@@ -7,7 +7,7 @@ public class Track {
     private int number;
     private String name;
     private Format format;
-    private String language;
+    private Iso639Language language;
 
     public int getNumber() {
         return number;
@@ -27,10 +27,10 @@ public class Track {
     public void setFormat(final Format format) {
         this.format = format;
     }
-    public String getLanguage() {
+    public Iso639Language getLanguage() {
         return language;
     }
-    public void setLanguage(final String language) {
+    public void setLanguage(final Iso639Language language) {
         this.language = language;
     }
 

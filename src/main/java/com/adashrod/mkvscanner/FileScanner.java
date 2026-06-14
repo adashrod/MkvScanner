@@ -1,5 +1,6 @@
 package com.adashrod.mkvscanner;
 
+import com.adashrod.mkvscanner.model.Iso639Language;
 import com.adashrod.mkvscanner.model.Video;
 
 import java.io.File;
@@ -81,14 +82,14 @@ public interface FileScanner {
      * their language is included in languagesToInclude
      * @param bluRayDirectory    the target BD dir
      * @param title              which title on the BD structure to scan
-     * @param languagesToInclude tracks are included in demuxing if their language is included here
+     * @param languagesToInclude ISO 639-2 languages; a track is included in demuxing if its language code is here
      * @return output filenames created by the demuxing (just the names, not the fully qualified absolute names)
      * @throws NotBluRayDirectoryException scanned a directory that wasn't a BD dir
      * @throws CorruptBluRayStructureException BD dir can be scanned, but the titles can't
      * @throws DemuxerException error output from mkvscanner couldn't be parsed
      * @throws IOException thrown by executable process
      */
-    Collection<String> demuxBluRayTitleByLanguages(File bluRayDirectory, int title, Collection<String> languagesToInclude) throws DemuxerException, IOException;
+    Collection<String> demuxBluRayTitleByLanguages(File bluRayDirectory, int title, Collection<Iso639Language> languagesToInclude) throws DemuxerException, IOException;
 
     /**
      * Runs the mkvscanner on a file, demuxing specific tracks. Tracks are included in demuxing if their track number is
@@ -106,11 +107,11 @@ public interface FileScanner {
      * Runs the mkvscanner on a file, demuxing specific tracks.  Tracks are included in demuxing if their language is
      * included in languagesToInclude
      * @param file               the target file to run the mkvscanner on
-     * @param languagesToInclude tracks are included in demuxing if their language is included here
+     * @param languagesToInclude ISO 639-2 languages; a track is included in demuxing if its language code is here
      * @return output filenames created by the demuxing (just the names, not the fully qualified absolute names)
      * @throws UnreadableFileException trying to scan a file that isn't a video container (non-mkv/m2ts)
      * @throws DemuxerException error output from mkvscanner couldn't be parsed
      * @throws IOException thrown by executable process
      */
-    Collection<String> demuxFileByLanguages(File file, Collection<String> languagesToInclude) throws DemuxerException, IOException;
+    Collection<String> demuxFileByLanguages(File file, Collection<Iso639Language> languagesToInclude) throws DemuxerException, IOException;
 }

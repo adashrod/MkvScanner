@@ -1,6 +1,7 @@
 package com.adashrod.mkvscanner;
 
 import com.adashrod.mkvscanner.model.Format;
+import com.adashrod.mkvscanner.model.Iso639Language;
 import com.adashrod.mkvscanner.model.Track;
 import com.adashrod.mkvscanner.model.Video;
 import com.adashrod.mkvscanner.util.FormatExtensionConfig;
@@ -15,11 +16,9 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,7 +50,6 @@ public class Eac3toScanner implements FileScanner {
     private final String executableLocation;
     private final File outputDirectory;
     private final ProcessRunner processRunner;
-    private final Collection<String> eac3toLanguages = new HashSet<>();
     private final Map<String, FormatExtensionConfig> formatExtensionConfigs = new HashMap<>();
 
     public Eac3toScanner(final String executableLocation, final File outputDirectory) {
@@ -67,25 +65,10 @@ public class Eac3toScanner implements FileScanner {
         this.outputDirectory = Objects.requireNonNull(outputDirectory, "Eac3toScanner.outputDirectory can't be null");
         this.processRunner = Objects.requireNonNull(processRunner, "Eac3toScanner.processRunner can't be null");
         try {
-            loadEac3toLanguages();
             loadEac3toFormatExtensions();
         } catch (final IOException ioe) {
             logger.error(fatal, "Config error: " + ioe.getMessage());
             throw new RuntimeException("Config error: " + ioe.getMessage());
-        }
-    }
-
-    private void loadEac3toLanguages() throws IOException {
-        final InputStream inputStream = getClass().getResourceAsStream("/eac3to-languages.txt");
-        if (inputStream == null) {
-            throw new IOException("/eac3to-languages.txt is missing from mkvscanner jar!");
-        }
-        final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            if (!line.isEmpty()) {
-                eac3toLanguages.add(line);
-            }
         }
     }
 
@@ -192,7 +175,7 @@ public class Eac3toScanner implements FileScanner {
     }
 
     @Override
-    public Collection<String> demuxBluRayTitleByLanguages(final File bluRayDirectory, final int title, final Collection<String> languagesToInclude) throws DemuxerException, IOException {
+    public Collection<String> demuxBluRayTitleByLanguages(final File bluRayDirectory, final int title, final Collection<Iso639Language> languagesToInclude) throws DemuxerException, IOException {
         ensureDirectoryStatus(true, bluRayDirectory);
         return demuxHelper(bluRayDirectory, title, null, languagesToInclude);
     }
@@ -204,7 +187,7 @@ public class Eac3toScanner implements FileScanner {
     }
 
     @Override
-    public Collection<String> demuxFileByLanguages(final File file, final Collection<String> languagesToInclude) throws DemuxerException, IOException {
+    public Collection<String> demuxFileByLanguages(final File file, final Collection<Iso639Language> languagesToInclude) throws DemuxerException, IOException {
         ensureDirectoryStatus(false, file);
         return demuxHelper(file, null, null, languagesToInclude);
     }
@@ -354,15 +337,16 @@ public class Eac3toScanner implements FileScanner {
                 }
             }
             if (!languageFound) {
-                if (eac3toLanguages.contains(token)) {
-                    track.setLanguage(token);
+                final Iso639Language language = Iso639Language.fromToken(token);
+                if (language != null) {
+                    track.setLanguage(language);
                     languageFound = true;
                     badFormatTypeIndex++;
                 }
             }
         }
         if (!languageFound) {
-            track.setLanguage("Undetermined");
+            track.setLanguage(Iso639Language.UNDETERMINED);
         }
         if (track.getFormat() == null) {
             throw new FormatTypeParseException(null, tokens.get(badFormatTypeIndex));
@@ -392,7 +376,7 @@ public class Eac3toScanner implements FileScanner {
     }
 
     private Collection<String> demuxHelper(final File fileToDemux, final Integer title, final Collection<Integer> tracksToInclude,
-            final Collection<String> languagesToInclude) throws DemuxerException, IOException {
+            final Collection<Iso639Language> languagesToInclude) throws DemuxerException, IOException {
         if (!(tracksToInclude != null ^ languagesToInclude != null)) {
             throw new IllegalArgumentException("demuxHelper must be called with exactly one of: tracksToInclude, languagesToInclude");
         }
@@ -440,7 +424,7 @@ public class Eac3toScanner implements FileScanner {
                 if (title != null) {
                     outputFilenameBuilder.append("_ti").append(title);
                 }
-                outputFilenameBuilder.append("_tr").append(track.getNumber()).append("_").append(track.getLanguage());
+                outputFilenameBuilder.append("_tr").append(track.getNumber()).append("_").append(track.getLanguage().getCode());
                 if (!ec.getFlags().isEmpty()) {
                     // identifier for differentiating between multiple demuxed instances of a single track
                     outputFilenameBuilder.append("_").append(ec.getFlags().stream().reduce((final String s1, final String s2) -> {
