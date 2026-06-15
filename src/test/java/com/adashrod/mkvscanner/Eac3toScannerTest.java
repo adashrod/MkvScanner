@@ -1,5 +1,7 @@
 package com.adashrod.mkvscanner;
 
+import com.adashrod.mkvscanner.model.FormatType;
+import com.adashrod.mkvscanner.model.Iso639Language;
 import com.adashrod.mkvscanner.model.Track;
 import com.adashrod.mkvscanner.model.Video;
 import com.adashrod.mkvscanner.util.ProcessResult;
@@ -29,9 +31,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Created by aaron on 2026-06-13.
- */
 @ExtendWith(MockitoExtension.class)
 public class Eac3toScannerTest {
     @Mock
@@ -189,6 +188,199 @@ public class Eac3toScannerTest {
         "1: AC3, English, 5.1 channels, 448kbps, 48kHz",
         "2: Subtitle (VobSub), English");
 
+    // newer eac3to format: a blu-ray dir scan using bracketed ISO 639-2 codes and multi-segment m2ts
+    private static final String BD_NEW = String.join("\n",
+        "1) 00000.mpls, 00007.m2ts+00003.m2ts, 1:33:50",
+        "   - Chapters, 2 chapters",
+        "   - h264/AVC, 1080p24/1.001 (16:9)",
+        "   - AC3, [eng], stereo, 48kHz",
+        "   - Subtitle (PGS), [eng]",
+        "   - Subtitle (PGS), [dan]",
+        "   - Subtitle (PGS), [deu]",
+        "   - Subtitle (PGS), [spa]",
+        "   - Subtitle (PGS), [fra]",
+        "   - Subtitle (PGS), [ita]",
+        "   - Subtitle (PGS), [jpn]",
+        "   - Subtitle (PGS), [nld]",
+        "   - Subtitle (PGS), [nor]",
+        "   - Subtitle (PGS), [fin]",
+        "   - Subtitle (PGS), [swe]",
+        "",
+        "2) 00004.mpls, 00051.m2ts+00005.m2ts, 0:42:54",
+        "   - Chapters, 8 chapters",
+        "   - h264/AVC, 1080p24/1.001 (16:9)",
+        "   - DTS Master Audio, [eng], multi-channel, 48kHz",
+        "   - AC3, [deu], multi-channel, 48kHz",
+        "   - AC3, [spa], stereo, 48kHz",
+        "   - AC3, [fra], stereo, 48kHz",
+        "   - AC3, [ita], multi-channel, 48kHz",
+        "   - AC3, [jpn], stereo, 48kHz",
+        "   - AC3, [eng], stereo, 48kHz",
+        "   - Subtitle (PGS), [eng]",
+        "   - Subtitle (PGS), [dan]",
+        "   - Subtitle (PGS), [deu]",
+        "   - Subtitle (PGS), [spa]",
+        "   - Subtitle (PGS), [fra]",
+        "   - Subtitle (PGS), [ita]",
+        "   - Subtitle (PGS), [jpn]",
+        "   - Subtitle (PGS), [nld]",
+        "   - Subtitle (PGS), [nor]",
+        "   - Subtitle (PGS), [fin]",
+        "   - Subtitle (PGS), [swe]",
+        "",
+        "3) 00003.mpls, 00050.m2ts+00064.m2ts, 0:42:54",
+        "   - Chapters, 8 chapters",
+        "   - h264/AVC, 1080p24/1.001 (16:9)",
+        "   - DTS Master Audio, [eng], multi-channel, 48kHz",
+        "   - AC3, [deu], multi-channel, 48kHz",
+        "   - AC3, [spa], stereo, 48kHz",
+        "   - AC3, [fra], stereo, 48kHz",
+        "   - AC3, [ita], multi-channel, 48kHz",
+        "   - AC3, [jpn], stereo, 48kHz",
+        "   - Subtitle (PGS), [eng]",
+        "   - Subtitle (PGS), [dan]",
+        "   - Subtitle (PGS), [deu]",
+        "   - Subtitle (PGS), [spa]",
+        "   - Subtitle (PGS), [fra]",
+        "   - Subtitle (PGS), [ita]",
+        "   - Subtitle (PGS), [jpn]",
+        "   - Subtitle (PGS), [nld]",
+        "   - Subtitle (PGS), [nor]",
+        "   - Subtitle (PGS), [fin]",
+        "   - Subtitle (PGS), [swe]",
+        "",
+        "4) 00001.mpls, 00057.m2ts+00064.m2ts, 0:42:53",
+        "   - Chapters, 8 chapters",
+        "   - h264/AVC, 1080p24/1.001 (16:9)",
+        "   - DTS Master Audio, [eng], multi-channel, 48kHz",
+        "   - AC3, [deu], multi-channel, 48kHz",
+        "   - AC3, [spa], stereo, 48kHz",
+        "   - AC3, [fra], stereo, 48kHz",
+        "   - AC3, [ita], multi-channel, 48kHz",
+        "   - AC3, [jpn], stereo, 48kHz",
+        "   - Subtitle (PGS), [eng]",
+        "   - Subtitle (PGS), [dan]",
+        "   - Subtitle (PGS), [deu]",
+        "   - Subtitle (PGS), [spa]",
+        "   - Subtitle (PGS), [fra]",
+        "   - Subtitle (PGS), [ita]",
+        "   - Subtitle (PGS), [jpn]",
+        "   - Subtitle (PGS), [nld]",
+        "   - Subtitle (PGS), [nor]",
+        "   - Subtitle (PGS), [fin]",
+        "   - Subtitle (PGS), [swe]",
+        "",
+        "5) 00002.mpls, 00058.m2ts+00003.m2ts, 0:42:51",
+        "   - Chapters, 8 chapters",
+        "   - h264/AVC, 1080p24/1.001 (16:9)",
+        "   - DTS Master Audio, [eng], multi-channel, 48kHz",
+        "   - AC3, [deu], multi-channel, 48kHz",
+        "   - AC3, [spa], stereo, 48kHz",
+        "   - AC3, [fra], stereo, 48kHz",
+        "   - AC3, [ita], multi-channel, 48kHz",
+        "   - AC3, [jpn], stereo, 48kHz",
+        "   - AC3, [eng], stereo, 48kHz",
+        "   - Subtitle (PGS), [eng]",
+        "   - Subtitle (PGS), [dan]",
+        "   - Subtitle (PGS), [deu]",
+        "   - Subtitle (PGS), [spa]",
+        "   - Subtitle (PGS), [fra]",
+        "   - Subtitle (PGS), [ita]",
+        "   - Subtitle (PGS), [jpn]",
+        "   - Subtitle (PGS), [nld]",
+        "   - Subtitle (PGS), [nor]",
+        "   - Subtitle (PGS), [fin]",
+        "   - Subtitle (PGS), [swe]",
+        "   - Subtitle (PGS), [jpn]",
+        "",
+        "6) 00014.mpls, 00054.m2ts+00065.m2ts, 0:19:12",
+        "   - Chapters, 2 chapters",
+        "   - MPEG2, 480i60/1.001 (4:3)",
+        "   - AC3, [eng], stereo, 48kHz",
+        "   - Subtitle (PGS), [eng]",
+        "   - Subtitle (PGS), [dan]",
+        "   - Subtitle (PGS), [deu]",
+        "   - Subtitle (PGS), [spa]",
+        "   - Subtitle (PGS), [fra]",
+        "   - Subtitle (PGS), [ita]",
+        "   - Subtitle (PGS), [jpn]",
+        "   - Subtitle (PGS), [nld]",
+        "   - Subtitle (PGS), [nor]",
+        "   - Subtitle (PGS), [fin]",
+        "   - Subtitle (PGS), [swe]");
+
+    // newer eac3to format: a single blu-ray title scan with preamble lines and bracketed ISO 639-2 codes
+    // (incl. /T codes deu/fra/nld);
+    private static final String BD_TITLE_NEW = String.join("\n",
+        "Fast mode enabled",
+        "Keeping dialnorm",
+        "analyze: 100%",
+        "M2TS, 1 video track, 1 audio track, 11 subtitle tracks, 1:33:49",
+        "1: Chapters, 2 chapters",
+        "2: h264/AVC, 1080p24/1.001 (16:9), SDR",
+        "3: AC3, [eng], 2.0 channels, 192kbps, 48kHz, dialnorm: -31dB",
+        "4: Subtitle (PGS), [eng]",
+        "5: Subtitle (PGS), [dan]",
+        "6: Subtitle (PGS), [deu]",
+        "7: Subtitle (PGS), [spa]",
+        "8: Subtitle (PGS), [fra]",
+        "9: Subtitle (PGS), [ita]",
+        "10: Subtitle (PGS), [jpn]",
+        "11: Subtitle (PGS), [nld]",
+        "12: Subtitle (PGS), [nor]",
+        "13: Subtitle (PGS), [fin]",
+        "14: Subtitle (PGS), [swe]");
+
+    private static final String BD_TITLE_STRANGE_SUBS = String.join("\n",
+        "Fast mode enabled",
+        "Keeping dialnorm",
+        "M2TS, 1 video track, 1 audio track, 12 subtitle tracks, 0:19:11",
+        "1: Chapters, 2 chapters",
+        "2: MPEG2, 480i60/1.001 (4:3)",
+        "3: AC3, [eng], 2.0 channels, 192kbps, 48kHz, dialnorm: -31dB",
+        "4: Subtitle (PGS), [eng]",
+        "5: Subtitle (PGS), [dan]",
+        "6: Subtitle (PGS), [deu]",
+        "7: Subtitle (PGS), [spa]",
+        "8: Subtitle (PGS), [fra]",
+        "9: Subtitle (PGS), [ita]",
+        "10: Subtitle (PGS), [jpn]",
+        "11: Subtitle (PGS), [nld]",
+        "12: Subtitle (PGS), [nor]",
+        "13: Subtitle (PGS), [fin]",
+        "14: Subtitle (PGS), [swe]",
+        "15: *Subtitle (PGS)");
+
+    // newer eac3to format: mkv file with a TrueHD track, bracketed codes, and quoted names
+    private static final String MKV_FILE_TRUEHD_NEW = String.join("\n",
+        "Fast mode enabled",
+        "Keeping dialnorm",
+        "analyze: 100%",
+        "MKV, 1 video track, 3 audio tracks, 2 subtitle tracks, 2:12:06, 24p/1.001",
+        "1: h264/AVC, [eng], 1080p24/1.001 (16:9), SDR",
+        "2: TrueHD, [eng], 7.1 channels, 48kHz, dialnorm: -31dB",
+        "   \"TrueHD\"",
+        "3: AC3, [eng], 5.1 channels, 640kbps, 48kHz, dialnorm: -31dB",
+        "4: AC3, [spa], 5.1 channels, 640kbps, 48kHz, dialnorm: -31dB",
+        "   \"Spanish\"",
+        "5: Subtitle (PGS), [eng]",
+        "6: Subtitle (PGS), [spa], \"Spanish\"");
+
+    // newer eac3to format: mkv file with a DTS-HD MA track, a "(core: ...)" line, bracketed codes
+    private static final String MKV_FILE_DTSHD_NEW = String.join("\n",
+        "Fast mode enabled",
+        "Keeping dialnorm",
+        "analyze: 100%",
+        "MKV, 1 video track, 2 audio tracks, 2 subtitle tracks, 2:44:34, 24p/1.001",
+        "1: h264/AVC, [eng], 1080p24/1.001 (16:9), SDR",
+        "2: DTS-HD Master Audio, [eng], 5.1 channels, 24 bits, 48kHz, dialnorm: 0dB",
+        "   (core: DTS, 5.1 channels, 1509kbps, 48kHz, dialnorm: 0dB)",
+        "   \"DTS-HD\"",
+        "3: AC3, [spa], 5.1 channels, 448kbps, 48kHz, dialnorm: -31dB",
+        "   \"Spanish\"",
+        "4: Subtitle (PGS), [eng]",
+        "5: Subtitle (PGS), [spa], \"Spanish\"");
+
     @Test
     public void scanBluRayDir_returnsAllTitleNumbers(@TempDir final File bluRayDir) throws Exception {
         final FileScanner scanner = scannerReturning(0, BLU_RAY_DISC_LEGACY);
@@ -206,34 +398,34 @@ public class Eac3toScannerTest {
 
         // the leading "M2TS, 1 video track, ..." summary line is not a track; the 28 numbered lines are
         assertEquals(28, tracks.size());
-        assertTrack(tracks.get(0), 1, "Matroska", "Chapters", "Undetermined");
-        assertTrack(tracks.get(1), 2, "VC-1", "Video", "Undetermined");
-        assertTrack(tracks.get(2), 3, "AC3", "Audio", "English");
-        assertTrack(tracks.get(3), 4, "RAW/PCM", "Audio", "English");
-        assertTrack(tracks.get(4), 5, "AC3", "Audio", "French");
-        assertTrack(tracks.get(5), 6, "AC3", "Audio", "Spanish");
-        assertTrack(tracks.get(6), 7, "AC3", "Audio", "German");
-        assertTrack(tracks.get(7), 8, "AC3", "Audio", "Italian");
-        assertTrack(tracks.get(8), 9, "AC3", "Audio", "Spanish");
-        assertTrack(tracks.get(9), 10, "AC3 Surround", "Audio", "English");
-        assertTrack(tracks.get(10), 11, "PGS", "Subtitles", "English");
-        assertTrack(tracks.get(11), 12, "PGS", "Subtitles", "English");
-        assertTrack(tracks.get(12), 13, "PGS", "Subtitles", "French");
-        assertTrack(tracks.get(13), 14, "PGS", "Subtitles", "German");
-        assertTrack(tracks.get(14), 15, "PGS", "Subtitles", "German");
-        assertTrack(tracks.get(15), 16, "PGS", "Subtitles", "Italian");
-        assertTrack(tracks.get(16), 17, "PGS", "Subtitles", "Italian");
-        assertTrack(tracks.get(17), 18, "PGS", "Subtitles", "Spanish");
-        assertTrack(tracks.get(18), 19, "PGS", "Subtitles", "Dutch");
-        assertTrack(tracks.get(19), 20, "PGS", "Subtitles", "Chinese");
-        assertTrack(tracks.get(20), 21, "PGS", "Subtitles", "Danish");
-        assertTrack(tracks.get(21), 22, "PGS", "Subtitles", "Finnish");
-        assertTrack(tracks.get(22), 23, "PGS", "Subtitles", "Korean");
-        assertTrack(tracks.get(23), 24, "PGS", "Subtitles", "Norwegian");
-        assertTrack(tracks.get(24), 25, "PGS", "Subtitles", "Portuguese");
-        assertTrack(tracks.get(25), 26, "PGS", "Subtitles", "Portuguese");
-        assertTrack(tracks.get(26), 27, "PGS", "Subtitles", "Spanish");
-        assertTrack(tracks.get(27), 28, "PGS", "Subtitles", "Swedish");
+        assertTrack(tracks.get(0), 1, "OGM Chapters", FormatType.CHAPTERS, Iso639Language.UNDETERMINED);
+        assertTrack(tracks.get(1), 2, "VC-1", FormatType.VIDEO, Iso639Language.UNDETERMINED);
+        assertTrack(tracks.get(2), 3, "AC3", FormatType.AUDIO, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(3), 4, "RAW/PCM", FormatType.AUDIO, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(4), 5, "AC3", FormatType.AUDIO, Iso639Language.FRENCH);
+        assertTrack(tracks.get(5), 6, "AC3", FormatType.AUDIO, Iso639Language.SPANISH);
+        assertTrack(tracks.get(6), 7, "AC3", FormatType.AUDIO, Iso639Language.GERMAN);
+        assertTrack(tracks.get(7), 8, "AC3", FormatType.AUDIO, Iso639Language.ITALIAN);
+        assertTrack(tracks.get(8), 9, "AC3", FormatType.AUDIO, Iso639Language.SPANISH);
+        assertTrack(tracks.get(9), 10, "AC3 Surround", FormatType.AUDIO, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(10), 11, "PGS", FormatType.SUBTITLES, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(11), 12, "PGS", FormatType.SUBTITLES, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(12), 13, "PGS", FormatType.SUBTITLES, Iso639Language.FRENCH);
+        assertTrack(tracks.get(13), 14, "PGS", FormatType.SUBTITLES, Iso639Language.GERMAN);
+        assertTrack(tracks.get(14), 15, "PGS", FormatType.SUBTITLES, Iso639Language.GERMAN);
+        assertTrack(tracks.get(15), 16, "PGS", FormatType.SUBTITLES, Iso639Language.ITALIAN);
+        assertTrack(tracks.get(16), 17, "PGS", FormatType.SUBTITLES, Iso639Language.ITALIAN);
+        assertTrack(tracks.get(17), 18, "PGS", FormatType.SUBTITLES, Iso639Language.SPANISH);
+        assertTrack(tracks.get(18), 19, "PGS", FormatType.SUBTITLES, Iso639Language.DUTCH);
+        assertTrack(tracks.get(19), 20, "PGS", FormatType.SUBTITLES, Iso639Language.CHINESE);
+        assertTrack(tracks.get(20), 21, "PGS", FormatType.SUBTITLES, Iso639Language.DANISH);
+        assertTrack(tracks.get(21), 22, "PGS", FormatType.SUBTITLES, Iso639Language.FINNISH);
+        assertTrack(tracks.get(22), 23, "PGS", FormatType.SUBTITLES, Iso639Language.KOREAN);
+        assertTrack(tracks.get(23), 24, "PGS", FormatType.SUBTITLES, Iso639Language.NORWEGIAN);
+        assertTrack(tracks.get(24), 25, "PGS", FormatType.SUBTITLES, Iso639Language.PORTUGUESE);
+        assertTrack(tracks.get(25), 26, "PGS", FormatType.SUBTITLES, Iso639Language.PORTUGUESE);
+        assertTrack(tracks.get(26), 27, "PGS", FormatType.SUBTITLES, Iso639Language.SPANISH);
+        assertTrack(tracks.get(27), 28, "PGS", FormatType.SUBTITLES, Iso639Language.SWEDISH);
     }
 
     @Test
@@ -244,12 +436,12 @@ public class Eac3toScannerTest {
 
         // the leading "MKV, 1 video track, ..." summary line is not a track; the 6 numbered lines are
         assertEquals(6, tracks.size());
-        assertTrack(tracks.get(0), 1, null, "h264/AVC", "Video", "English");
-        assertTrack(tracks.get(1), 2, "TrueHD", "TrueHD", "Audio", "English");    // name on its own line
-        assertTrack(tracks.get(2), 3, null, "AC3", "Audio", "English");
-        assertTrack(tracks.get(3), 4, "Spanish", "AC3", "Audio", "Spanish");      // name on its own line
-        assertTrack(tracks.get(4), 5, null, "PGS", "Subtitles", "English");
-        assertTrack(tracks.get(5), 6, "Spanish", "PGS", "Subtitles", "Spanish");  // name inline on the track line
+        assertTrack(tracks.get(0), 1, null, "h264/AVC", FormatType.VIDEO, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(1), 2, "TrueHD", "TrueHD", FormatType.AUDIO, Iso639Language.ENGLISH);    // name on its own line
+        assertTrack(tracks.get(2), 3, null, "AC3", FormatType.AUDIO, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(3), 4, "Spanish", "AC3", FormatType.AUDIO, Iso639Language.SPANISH);      // name on its own line
+        assertTrack(tracks.get(4), 5, null, "PGS", FormatType.SUBTITLES, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(5), 6, "Spanish", "PGS", FormatType.SUBTITLES, Iso639Language.SPANISH);  // name inline on the track line
     }
 
     @Test
@@ -259,12 +451,98 @@ public class Eac3toScannerTest {
         final List<Track> tracks = scanner.scanAndParseFile(new File("movie.mkv")).getTracks();
 
         assertEquals(5, tracks.size());
-        assertTrack(tracks.get(0), 1, null, "h264/AVC", "Video", "English");
+        assertTrack(tracks.get(0), 1, null, "h264/AVC", FormatType.VIDEO, Iso639Language.ENGLISH);
         // the "(core: ...)" line is ignored; the following "DTS-HD" line sets this track's name
-        assertTrack(tracks.get(1), 2, "DTS-HD", "DTS-HD Master Audio", "Audio", "English");
-        assertTrack(tracks.get(2), 3, "Spanish", "AC3", "Audio", "Spanish");
-        assertTrack(tracks.get(3), 4, null, "PGS", "Subtitles", "English");
-        assertTrack(tracks.get(4), 5, "Spanish", "PGS", "Subtitles", "Spanish");
+        assertTrack(tracks.get(1), 2, "DTS-HD", "DTS-HD Master Audio", FormatType.AUDIO, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(2), 3, "Spanish", "AC3", FormatType.AUDIO, Iso639Language.SPANISH);
+        assertTrack(tracks.get(3), 4, null, "PGS", FormatType.SUBTITLES, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(4), 5, "Spanish", "PGS", FormatType.SUBTITLES, Iso639Language.SPANISH);
+    }
+
+    @Test
+    public void scanBluRayDir_new_returnsAllTitleNumbers(@TempDir final File bluRayDir) throws Exception {
+        final FileScanner scanner = scannerReturning(0, BD_NEW);
+        final Set<Integer> titles = scanner.scanBluRayDir(bluRayDir);
+
+        assertEquals(new HashSet<>(Arrays.asList(1, 2, 3, 4, 5, 6)), titles);
+    }
+
+    @Test
+    public void scanAndParseBluRayTitle_new_parsesBracketedLanguageCodes(@TempDir final File bluRayDir) throws Exception {
+        final FileScanner scanner = scannerReturning(0, BD_TITLE_NEW);
+
+        final List<Track> tracks = scanner.scanAndParseBluRayTitle(bluRayDir, 1).getTracks();
+
+        // preamble + summary lines are skipped; the 14 numbered lines are tracks. languages are bracketed ISO codes,
+        // including the /T codes [deu]/[fra]/[nld]
+        assertEquals(14, tracks.size());
+        assertTrack(tracks.get(0), 1, "OGM Chapters", FormatType.CHAPTERS, Iso639Language.UNDETERMINED);
+        assertTrack(tracks.get(1), 2, "h264/AVC", FormatType.VIDEO, Iso639Language.UNDETERMINED);
+        assertTrack(tracks.get(2), 3, "AC3", FormatType.AUDIO, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(3), 4, "PGS", FormatType.SUBTITLES, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(4), 5, "PGS", FormatType.SUBTITLES, Iso639Language.DANISH);
+        assertTrack(tracks.get(5), 6, "PGS", FormatType.SUBTITLES, Iso639Language.GERMAN);      // [deu] (ISO 639-2/T)
+        assertTrack(tracks.get(6), 7, "PGS", FormatType.SUBTITLES, Iso639Language.SPANISH);
+        assertTrack(tracks.get(7), 8, "PGS", FormatType.SUBTITLES, Iso639Language.FRENCH);      // [fra] (ISO 639-2/T)
+        assertTrack(tracks.get(8), 9, "PGS", FormatType.SUBTITLES, Iso639Language.ITALIAN);
+        assertTrack(tracks.get(9), 10, "PGS", FormatType.SUBTITLES, Iso639Language.JAPANESE);
+        assertTrack(tracks.get(10), 11, "PGS", FormatType.SUBTITLES, Iso639Language.DUTCH);     // [nld] (ISO 639-2/T)
+        assertTrack(tracks.get(11), 12, "PGS", FormatType.SUBTITLES, Iso639Language.NORWEGIAN);
+        assertTrack(tracks.get(12), 13, "PGS", FormatType.SUBTITLES, Iso639Language.FINNISH);
+        assertTrack(tracks.get(13), 14, "PGS", FormatType.SUBTITLES, Iso639Language.SWEDISH);
+    }
+
+    @Test
+    public void scanAndParseBluRayTitle_strangeSubsWithoutLanguageAreHandledProperly(@TempDir final File bluRayDir) throws Exception {
+        final FileScanner scanner = scannerReturning(0, BD_TITLE_STRANGE_SUBS);
+
+        final List<Track> tracks = scanner.scanAndParseBluRayTitle(bluRayDir, 1).getTracks();
+
+        assertTrack(tracks.get(0), 1, "OGM Chapters", FormatType.CHAPTERS, Iso639Language.UNDETERMINED);
+        assertTrack(tracks.get(1), 2, "MPEG2", FormatType.VIDEO, Iso639Language.UNDETERMINED);
+        assertTrack(tracks.get(2), 3, "AC3", FormatType.AUDIO, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(3), 4, "PGS", FormatType.SUBTITLES, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(4), 5, "PGS", FormatType.SUBTITLES, Iso639Language.DANISH);
+        assertTrack(tracks.get(5), 6, "PGS", FormatType.SUBTITLES, Iso639Language.GERMAN);
+        assertTrack(tracks.get(6), 7, "PGS", FormatType.SUBTITLES, Iso639Language.SPANISH);
+        assertTrack(tracks.get(7), 8, "PGS", FormatType.SUBTITLES, Iso639Language.FRENCH);
+        assertTrack(tracks.get(8), 9, "PGS", FormatType.SUBTITLES, Iso639Language.ITALIAN);
+        assertTrack(tracks.get(9), 10, "PGS", FormatType.SUBTITLES, Iso639Language.JAPANESE);
+        assertTrack(tracks.get(10), 11, "PGS", FormatType.SUBTITLES, Iso639Language.DUTCH);
+        assertTrack(tracks.get(11), 12, "PGS", FormatType.SUBTITLES, Iso639Language.NORWEGIAN);
+        assertTrack(tracks.get(12), 13, "PGS", FormatType.SUBTITLES, Iso639Language.FINNISH);
+        assertTrack(tracks.get(13), 14, "PGS", FormatType.SUBTITLES, Iso639Language.SWEDISH);
+        assertTrack(tracks.get(14), 15, "PGS", FormatType.SUBTITLES, Iso639Language.UNDETERMINED);
+    }
+
+    @Test
+    public void scanAndParseFile_new_truehd_parsesBracketedCodesAndQuotedNames() throws Exception {
+        final FileScanner scanner = scannerReturning(0, MKV_FILE_TRUEHD_NEW);
+
+        final List<Track> tracks = scanner.scanAndParseFile(new File("movie.mkv")).getTracks();
+
+        // same tracks as the *_LEGACY fixture, but languages arrive as bracketed [eng]/[spa] codes
+        assertEquals(6, tracks.size());
+        assertTrack(tracks.get(0), 1, null, "h264/AVC", FormatType.VIDEO, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(1), 2, "TrueHD", "TrueHD", FormatType.AUDIO, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(2), 3, null, "AC3", FormatType.AUDIO, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(3), 4, "Spanish", "AC3", FormatType.AUDIO, Iso639Language.SPANISH);
+        assertTrack(tracks.get(4), 5, null, "PGS", FormatType.SUBTITLES, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(5), 6, "Spanish", "PGS", FormatType.SUBTITLES, Iso639Language.SPANISH);
+    }
+
+    @Test
+    public void scanAndParseFile_new_dtshd_parsesBracketedCodesAndIgnoresCoreLine() throws Exception {
+        final FileScanner scanner = scannerReturning(0, MKV_FILE_DTSHD_NEW);
+
+        final List<Track> tracks = scanner.scanAndParseFile(new File("movie.mkv")).getTracks();
+
+        assertEquals(5, tracks.size());
+        assertTrack(tracks.get(0), 1, null, "h264/AVC", FormatType.VIDEO, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(1), 2, "DTS-HD", "DTS-HD Master Audio", FormatType.AUDIO, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(2), 3, "Spanish", "AC3", FormatType.AUDIO, Iso639Language.SPANISH);
+        assertTrack(tracks.get(3), 4, null, "PGS", FormatType.SUBTITLES, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(4), 5, "Spanish", "PGS", FormatType.SUBTITLES, Iso639Language.SPANISH);
     }
 
     @Test
@@ -289,11 +567,11 @@ public class Eac3toScannerTest {
         final List<List<String>> commands = capturedCommands(2);
         assertEquals(Arrays.asList("eac3to", "movie.mkv"), commands.get(0));
         assertEquals(Arrays.asList("eac3to", "movie.mkv",
-            "2:", out(outputDir, "movie_tr2_English_TrueHD.thd+ac3"),
-            "4:", out(outputDir, "movie_tr4_Spanish_AC3.ac3"),
-            "6:", out(outputDir, "movie_tr6_Spanish_PGS.sup")), commands.get(1));
-        assertEquals(new HashSet<>(Arrays.asList("movie_tr2_English_TrueHD.thd+ac3",
-            "movie_tr4_Spanish_AC3.ac3", "movie_tr6_Spanish_PGS.sup")), new HashSet<>(filenames));
+            "2:", out(outputDir, "movie_tr2_eng_TrueHD.thd+ac3"),
+            "4:", out(outputDir, "movie_tr4_spa_AC3.ac3"),
+            "6:", out(outputDir, "movie_tr6_spa_PGS.sup")), commands.get(1));
+        assertEquals(new HashSet<>(Arrays.asList("movie_tr2_eng_TrueHD.thd+ac3",
+            "movie_tr4_spa_AC3.ac3", "movie_tr6_spa_PGS.sup")), new HashSet<>(filenames));
     }
 
     @Test
@@ -313,15 +591,15 @@ public class Eac3toScannerTest {
         assertEquals(Arrays.asList("eac3to", "movie.mkv"), demux.subList(0, 2));
         // the two configs come from a HashSet, so their relative order isn't guaranteed: compare order-insensitively
         assertEquals(sorted(Arrays.asList(
-            "2:", out(outputDir, "movie_tr2_English_DTS-HD_Master_Audio.dtshd"),
-            "2:", out(outputDir, "movie_tr2_English_core_DTS-HD_Master_Audio.dts"), "-core",
-            "3:", out(outputDir, "movie_tr3_Spanish_AC3.ac3"))),
+            "2:", out(outputDir, "movie_tr2_eng_DTS-HD_Master_Audio.dtshd"),
+            "2:", out(outputDir, "movie_tr2_eng_DTS-HD_Master_Audio_core.dts"), "-core",
+            "3:", out(outputDir, "movie_tr3_spa_AC3.ac3"))),
             sorted(demux.subList(2, demux.size())));
 
         assertEquals(new HashSet<>(Arrays.asList(
-            "movie_tr2_English_DTS-HD_Master_Audio.dtshd",
-            "movie_tr2_English_core_DTS-HD_Master_Audio.dts",
-            "movie_tr3_Spanish_AC3.ac3")), new HashSet<>(filenames));
+            "movie_tr2_eng_DTS-HD_Master_Audio.dtshd",
+            "movie_tr2_eng_DTS-HD_Master_Audio_core.dts",
+            "movie_tr3_spa_AC3.ac3")), new HashSet<>(filenames));
     }
 
     @Test
@@ -336,23 +614,23 @@ public class Eac3toScannerTest {
         final List<List<String>> commands = capturedCommands(2);
         assertEquals(Arrays.asList("eac3to", "movie.mkv"), commands.get(0));
         assertEquals(Arrays.asList("eac3to", "movie.mkv",
-            "1:", out(outputDir, "movie_tr1_English_AC3.ac3")), commands.get(1));
-        assertEquals(Collections.singleton("movie_tr1_English_AC3.ac3"), new HashSet<>(filenames));
+            "1:", out(outputDir, "movie_tr1_eng_AC3.ac3")), commands.get(1));
+        assertEquals(Collections.singleton("movie_tr1_eng_AC3.ac3"), new HashSet<>(filenames));
     }
 
     private static void assertTrack(final Track track, final int number, final String formatName,
-            final String formatType, final String language) {
+            final FormatType formatType, final Iso639Language language) {
         assertTrack(track, number, null, formatName, formatType, language);
     }
 
     private static void assertTrack(final Track track, final int number, final String name, final String formatName,
-            final String formatType, final String language) {
-        assertEquals(number, track.getNumber());
-        assertEquals(name, track.getName());
-        assertNotNull(track.getFormat());
-        assertEquals(formatName, track.getFormat().getName());
-        assertEquals(formatType, track.getFormat().getFormatType());
-        assertEquals(language, track.getLanguage());
+            final FormatType formatType, final Iso639Language language) {
+        assertEquals(number, track.getNumber(), "number: track " + number);
+        assertEquals(name, track.getName(), "name: track " + number);
+        assertNotNull(track.getFormat(), "format: track " + number);
+        assertEquals(formatName, track.getFormat().getName(), "formatName: track " + number);
+        assertEquals(formatType, track.getFormat().getFormatType(), "formatType: track " + number);
+        assertEquals(language, track.getLanguage(), "language: track " + number);
     }
 
     /**
@@ -416,10 +694,10 @@ public class Eac3toScannerTest {
         final List<List<String>> commands = capturedCommands(2);
         assertEquals(Arrays.asList("eac3to", "movie.m2ts"), commands.get(0));
         assertEquals(Arrays.asList("eac3to", "movie.m2ts",
-            "3:", out(outputDir, "movie_tr3_English_AC3.ac3"),
-            "11:", out(outputDir, "movie_tr11_English_PGS.sup")), commands.get(1));
+            "3:", out(outputDir, "movie_tr3_eng_AC3.ac3"),
+            "11:", out(outputDir, "movie_tr11_eng_PGS.sup")), commands.get(1));
         assertEquals(new HashSet<>(Arrays.asList(
-            "movie_tr3_English_AC3.ac3", "movie_tr11_English_PGS.sup")), new HashSet<>(filenames));
+            "movie_tr3_eng_AC3.ac3", "movie_tr11_eng_PGS.sup")), new HashSet<>(filenames));
     }
 
     @Test
@@ -428,17 +706,17 @@ public class Eac3toScannerTest {
         final FileScanner scanner = scannerWithOutputDir(outputDir, BLU_RAY_TITLE_LEGACY);
         final File file = new File("movie.m2ts");
 
-        // German appears on tracks 7 (AC3), 14 (PGS) and 15 (PGS)
-        final Collection<String> filenames = scanner.demuxFileByLanguages(file, Collections.singletonList("German"));
+        // German (ISO 639-2/T "deu") appears on tracks 7 (AC3), 14 (PGS) and 15 (PGS)
+        final Collection<String> filenames = scanner.demuxFileByLanguages(file, Collections.singletonList(Iso639Language.GERMAN));
 
         final List<List<String>> commands = capturedCommands(2);
         assertEquals(Arrays.asList("eac3to", "movie.m2ts"), commands.get(0));
         assertEquals(Arrays.asList("eac3to", "movie.m2ts",
-            "7:", out(outputDir, "movie_tr7_German_AC3.ac3"),
-            "14:", out(outputDir, "movie_tr14_German_PGS.sup"),
-            "15:", out(outputDir, "movie_tr15_German_PGS.sup")), commands.get(1));
-        assertEquals(new HashSet<>(Arrays.asList("movie_tr7_German_AC3.ac3",
-            "movie_tr14_German_PGS.sup", "movie_tr15_German_PGS.sup")), new HashSet<>(filenames));
+            "7:", out(outputDir, "movie_tr7_deu_AC3.ac3"),
+            "14:", out(outputDir, "movie_tr14_deu_PGS.sup"),
+            "15:", out(outputDir, "movie_tr15_deu_PGS.sup")), commands.get(1));
+        assertEquals(new HashSet<>(Arrays.asList("movie_tr7_deu_AC3.ac3",
+            "movie_tr14_deu_PGS.sup", "movie_tr15_deu_PGS.sup")), new HashSet<>(filenames));
     }
 
     @Test
@@ -455,11 +733,11 @@ public class Eac3toScannerTest {
         // scanning a title passes the "<title>)" selector to the executable
         assertEquals(Arrays.asList("eac3to", bluRayDir.getPath(), "1)"), commands.get(0));
         assertEquals(Arrays.asList("eac3to", bluRayDir.getPath(), "1)",
-            "1:", out(outputDir, "MOVIE_BD_ti1_tr1_Undetermined.txt"),
-            "2:", out(outputDir, "MOVIE_BD_ti1_tr2_Undetermined_VC-1.mkv"),
-            "4:", out(outputDir, "MOVIE_BD_ti1_tr4_English_RAW_PCM.pcm")), commands.get(1));
-        assertEquals(new HashSet<>(Arrays.asList("MOVIE_BD_ti1_tr1_Undetermined.txt",
-            "MOVIE_BD_ti1_tr2_Undetermined_VC-1.mkv", "MOVIE_BD_ti1_tr4_English_RAW_PCM.pcm")),
+            "1:", out(outputDir, "MOVIE_BD_ti1_tr1_Chapters.txt"),
+            "2:", out(outputDir, "MOVIE_BD_ti1_tr2_und_VC-1.mkv"),
+            "4:", out(outputDir, "MOVIE_BD_ti1_tr4_eng_RAW_PCM.pcm")), commands.get(1));
+        assertEquals(new HashSet<>(Arrays.asList("MOVIE_BD_ti1_tr1_Chapters.txt",
+            "MOVIE_BD_ti1_tr2_und_VC-1.mkv", "MOVIE_BD_ti1_tr4_eng_RAW_PCM.pcm")),
             new HashSet<>(filenames));
     }
 
@@ -470,16 +748,16 @@ public class Eac3toScannerTest {
         final File bluRayDir = new File(tempDir, "MOVIE_BD");
         assertTrue(bluRayDir.mkdir());
 
-        // French appears on tracks 5 (AC3) and 13 (PGS)
-        final Collection<String> filenames = scanner.demuxBluRayTitleByLanguages(bluRayDir, 1, Collections.singletonList("French"));
+        // French (ISO 639-2/T "fra") appears on tracks 5 (AC3) and 13 (PGS)
+        final Collection<String> filenames = scanner.demuxBluRayTitleByLanguages(bluRayDir, 1, Collections.singletonList(Iso639Language.FRENCH));
 
         final List<List<String>> commands = capturedCommands(2);
         assertEquals(Arrays.asList("eac3to", bluRayDir.getPath(), "1)"), commands.get(0));
         assertEquals(Arrays.asList("eac3to", bluRayDir.getPath(), "1)",
-            "5:", out(outputDir, "MOVIE_BD_ti1_tr5_French_AC3.ac3"),
-            "13:", out(outputDir, "MOVIE_BD_ti1_tr13_French_PGS.sup")), commands.get(1));
+            "5:", out(outputDir, "MOVIE_BD_ti1_tr5_fra_AC3.ac3"),
+            "13:", out(outputDir, "MOVIE_BD_ti1_tr13_fra_PGS.sup")), commands.get(1));
         assertEquals(new HashSet<>(Arrays.asList(
-            "MOVIE_BD_ti1_tr5_French_AC3.ac3", "MOVIE_BD_ti1_tr13_French_PGS.sup")), new HashSet<>(filenames));
+            "MOVIE_BD_ti1_tr5_fra_AC3.ac3", "MOVIE_BD_ti1_tr13_fra_PGS.sup")), new HashSet<>(filenames));
     }
 
     private FileScanner scannerWithOutputDir(final File outputDir, final String scanOutput) throws Exception {
