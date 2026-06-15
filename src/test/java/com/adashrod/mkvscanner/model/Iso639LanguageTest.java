@@ -1,9 +1,11 @@
 package com.adashrod.mkvscanner.model;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class Iso639LanguageTest {
@@ -58,10 +60,10 @@ public class Iso639LanguageTest {
     }
 
     @Test
-    public void fromToken_returnsNullForUnknownOrMalformed() {
-        assertNull(Iso639Language.fromToken("Klingon"));
-        assertNull(Iso639Language.fromToken("[zzz]"));   // not a real code
-        assertNull(Iso639Language.fromToken(null));
+    public void fromToken_throwsForUnknownOrMalformed() {
+        assertThrows(IllegalArgumentException.class, () -> Iso639Language.fromToken("Klingon"));
+        assertThrows(IllegalArgumentException.class, () -> Iso639Language.fromToken("[zzz]"));   // not a real code
+        assertThrows(IllegalArgumentException.class, () -> Iso639Language.fromToken(null));
     }
 
     @Test

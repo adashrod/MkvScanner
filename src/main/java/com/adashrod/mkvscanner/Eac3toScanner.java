@@ -335,12 +335,12 @@ public class Eac3toScanner implements FileScanner {
                 }
             }
             if (!languageFound) {
-                final Iso639Language language = Iso639Language.fromToken(token);
-                if (language != null) {
+                try {
+                    final Iso639Language language = Iso639Language.fromToken(token);
                     track.setLanguage(language);
                     languageFound = true;
                     badFormatTypeIndex++;
-                }
+                } catch (final IllegalArgumentException ignored) {}
             }
         }
         if (!languageFound) {

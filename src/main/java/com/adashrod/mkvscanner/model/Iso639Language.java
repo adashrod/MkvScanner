@@ -263,15 +263,20 @@ public enum Iso639Language {
      */
     public static Iso639Language fromToken(final String token) {
         if (token == null) {
-            return null;
+            throw new IllegalArgumentException("null token not allowed");
         }
+        final Iso639Language result;
         final String trimmed = token.trim();
         if (trimmed.length() >= 2 && trimmed.charAt(0) == '[' && trimmed.charAt(trimmed.length() - 1) == ']') {
-            return BY_CODE.get(trimmed.substring(1, trimmed.length() - 1).trim().toLowerCase());
+            result = BY_CODE.get(trimmed.substring(1, trimmed.length() - 1).trim().toLowerCase());
+        } else if (trimmed.length() == 3) {
+            result = BY_CODE.get(trimmed.toLowerCase());
+        } else {
+            result = BY_NAME.get(trimmed.toLowerCase());
         }
-        if (trimmed.length() == 3) {
-            return BY_CODE.get(trimmed.toLowerCase());
+        if (result == null) {
+            throw new IllegalArgumentException(String.format("Unknown language name or code: %s", token));
         }
-        return BY_NAME.get(trimmed.toLowerCase());
+        return result;
     }
 }

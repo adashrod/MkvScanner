@@ -8,8 +8,8 @@
     <property name="nexus-public" value="http://localhost:8081/nexus/content/groups/public"/>
     <resolvers>
         <filesystem name="local">
-            <ivy pattern="${ivy.default.ivy.user.dir}/local/[organisation]/[module]/[revision]/ivys/ivy.xml"/>
-            <artifact pattern="${ivy.default.ivy.user.dir}/local/[organisation]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext]"/>
+            <ivy pattern="${ivy.default.ivy.user.dir}/local/[organisation]/[module]/[revision]/poms/[module].pom"/>
+            <artifact pattern="${ivy.default.ivy.user.dir}/local/[organisation]/[module]/[revision]/[type]s/[module](-[classifier]).[ext]"/>
         </filesystem>
         <ibiblio name="ibiblio" m2compatible="true"/>
 
