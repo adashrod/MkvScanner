@@ -12,9 +12,9 @@ Video metadata = scanner.scanAndParseFile(new File("c:\\mkvs\\MyMovie.mkv"));
 ~~~~
 
 `metadata` now contains a list of the tracks found in the mkv file. Each track object (in `metadata.getTracks()`) contains information about the track, such as:
-- name, plaintext label, if it has one
-- format name (AC-3, H-264, PGS, etc)
-- format type (Audio, Video, Subtitles, Chapters)
+- name: plaintext label, if it has one
+- format name: (AC-3, H-264, PGS, etc)
+- format type: (Audio, Video, Subtitles, Chapters)
 - language
 
 ### demuxing:
@@ -28,19 +28,4 @@ demuxed tracks are output into the directory specified in the Eac3toScanner cons
 
 ### adding as a dependency
 
-Page on [search.maven.org](http://search.maven.org/#artifactdetails%7Ccom.adashrod.mkvscanner%7Cmkvscanner%7C1.0.0%7Cpom)
-
-Page on [mvnrepository.com](http://mvnrepository.com/artifact/com.adashrod.mkvscanner/mkvscanner)
-
-##### Maven:
-~~~~
-<dependency>
-    <groupId>com.adashrod.mkvscanner</groupId>
-    <artifactId>mkvscanner</artifactId>
-    <version>1.1.0</version>
-</dependency>
-~~~~
-##### Ivy:
-~~~~
-<dependency org="com.adashrod.mkvscanner" name="mkvscanner" rev="1.1.0" />
-~~~~
+[Maven Central](http://search.maven.org/#artifactdetails%7Ccom.adashrod.mkvscanner%7Cmkvscanner%7C2.0.0%7Cpom)
