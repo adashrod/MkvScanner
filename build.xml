@@ -3,7 +3,7 @@
          xmlns:unless="ant:unless"
          xmlns:ivy="antlib:org.apache.ivy.ant">
 
-    <property name="ivy.install.version"       value="2.4.0"/>
+    <property name="ivy.install.version"       value="2.5.3"/>
     <property name="ivy.jar.dir"               value="${basedir}/ivy"/>
     <property name="ivy.jar.file"              value="${ivy.jar.dir}/ivy.jar"/>
     <property name="src.main.dir"              value="src/main/java"/>
