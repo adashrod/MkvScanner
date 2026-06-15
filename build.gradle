@@ -1,0 +1,91 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
+    id 'io.github.gradle-nexus.publish-plugin' version '1.3.0'
+}
+
+group = 'com.adashrod.mkvscanner'
+version = '2.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+    withSourcesJar()
+    withJavadocJar()
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.slf4j:slf4j-api:1.7.25'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.7.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.7.0'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.4.2'
+    testImplementation 'org.junit.platform:junit-platform-engine:1.4.2'
+    testImplementation 'org.mockito:mockito-core:2.27.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:2.27.0'
+}
+
+test {
+    useJUnitPlatform()
+
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+        showStackTraces true
+        showCauses true
+        showStandardStreams false
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            pom {
+                name = 'MkvScanner'
+                description = 'MkvScanner is a java API wrapper for eac3to'
+                url = 'https://www.github.com/adashrod/MkvScanner'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                        distribution = 'repo'
+                    }
+                }
+                scm {
+                    url = 'https://www.github.com/adashrod/MkvScanner'
+                    connection = 'scm:git:git@github.com:adashrod/MkvScanner.git'
+                    developerConnection = 'scm:git:git@github.com:adashrod/MkvScanner.git'
+                }
+                developers {
+                    developer {
+                        name = 'Aaron Rodriguez'
+                        email = 'adashrod@gmail.com'
+                        url = 'https://www.github.com/adashrod'
+                    }
+                }
+            }
+        }
+    }
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl = uri('https://ossrh-staging-api.central.sonatype.com/service/local/')
+            snapshotRepositoryUrl = uri('https://central.sonatype.com/repository/maven-snapshots/')
+            username = findProperty('publish.user') ?: ''
+            password = findProperty('publish.password') ?: ''
+        }
+    }
+}
+
+signing {
+    useGpgCmd()
+    sign publishing.publications.mavenJava
+}

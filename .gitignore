@@ -1,7 +1,6 @@
 /.idea
 *.iml
 
-/ivy
 /lib
 
 /build
@@ -11,9 +10,8 @@
 /dist
 /javadoc
 
-/FAKE_BD
 /*.mkv
-/bd.txt
-/bd_title.txt
 
 /todo.txt
+.gradle/
+build/
