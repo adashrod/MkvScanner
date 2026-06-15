@@ -309,7 +309,7 @@ public class Eac3toScanner implements FileScanner {
                 if (token.equals("Chapters")) {
                     track.setFormat(Format.OGM_CHAPTERS);
                 } else {
-                    if (token.startsWith("Subtitle")) {
+                    if (token.startsWith("Subtitle") || token.startsWith("*Subtitle")) {
                         final String subtitleFormatName = parseSubtitleFormat(token); // PGS, VobSub, etc
                         final Format subtitleFormat = new Format();
                         subtitleFormat.setName(subtitleFormatName);
@@ -347,13 +347,16 @@ public class Eac3toScanner implements FileScanner {
             track.setLanguage(Iso639Language.UNDETERMINED);
         }
         if (track.getFormat() == null) {
-            throw new FormatTypeParseException(null, tokens.get(badFormatTypeIndex));
+            final String formatTypeToken = badFormatTypeIndex < tokens.size() ?
+                tokens.get(badFormatTypeIndex) :
+                String.format("Out of bounds in: %s", String.join(" ", tokens));
+            throw new FormatTypeParseException(null, formatTypeToken);
         }
         return track;
     }
 
     private String parseSubtitleFormat(final CharSequence subtitleToken) {
-        final Pattern subtitleTokenFormat = Pattern.compile("Subtitle\\s*\\(([^)]+)\\).*");
+        final Pattern subtitleTokenFormat = Pattern.compile("\\*?Subtitle\\s*\\(([^)]+)\\).*");
         final Matcher matcher = subtitleTokenFormat.matcher(subtitleToken);
         return matcher.matches() ? matcher.group(1) : null;
     }

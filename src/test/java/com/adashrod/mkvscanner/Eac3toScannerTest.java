@@ -331,6 +331,26 @@ public class Eac3toScannerTest {
         "13: Subtitle (PGS), [fin]",
         "14: Subtitle (PGS), [swe]");
 
+    private static final String BD_TITLE_STRANGE_SUBS = String.join("\n",
+        "Fast mode enabled",
+        "Keeping dialnorm",
+        "M2TS, 1 video track, 1 audio track, 12 subtitle tracks, 0:19:11",
+        "1: Chapters, 2 chapters",
+        "2: MPEG2, 480i60/1.001 (4:3)",
+        "3: AC3, [eng], 2.0 channels, 192kbps, 48kHz, dialnorm: -31dB",
+        "4: Subtitle (PGS), [eng]",
+        "5: Subtitle (PGS), [dan]",
+        "6: Subtitle (PGS), [deu]",
+        "7: Subtitle (PGS), [spa]",
+        "8: Subtitle (PGS), [fra]",
+        "9: Subtitle (PGS), [ita]",
+        "10: Subtitle (PGS), [jpn]",
+        "11: Subtitle (PGS), [nld]",
+        "12: Subtitle (PGS), [nor]",
+        "13: Subtitle (PGS), [fin]",
+        "14: Subtitle (PGS), [swe]",
+        "15: *Subtitle (PGS)");
+
     // newer eac3to format: mkv file with a TrueHD track, bracketed codes, and quoted names
     private static final String MKV_FILE_TRUEHD_NEW = String.join("\n",
         "Fast mode enabled",
@@ -473,6 +493,29 @@ public class Eac3toScannerTest {
     }
 
     @Test
+    public void scanAndParseBluRayTitle_strangeSubsWithoutLanguageAreHandledProperly(@TempDir final File bluRayDir) throws Exception {
+        final FileScanner scanner = scannerReturning(0, BD_TITLE_STRANGE_SUBS);
+
+        final List<Track> tracks = scanner.scanAndParseBluRayTitle(bluRayDir, 1).getTracks();
+
+        assertTrack(tracks.get(0), 1, "OGM Chapters", FormatType.CHAPTERS, Iso639Language.UNDETERMINED);
+        assertTrack(tracks.get(1), 2, "MPEG2", FormatType.VIDEO, Iso639Language.UNDETERMINED);
+        assertTrack(tracks.get(2), 3, "AC3", FormatType.AUDIO, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(3), 4, "PGS", FormatType.SUBTITLES, Iso639Language.ENGLISH);
+        assertTrack(tracks.get(4), 5, "PGS", FormatType.SUBTITLES, Iso639Language.DANISH);
+        assertTrack(tracks.get(5), 6, "PGS", FormatType.SUBTITLES, Iso639Language.GERMAN);
+        assertTrack(tracks.get(6), 7, "PGS", FormatType.SUBTITLES, Iso639Language.SPANISH);
+        assertTrack(tracks.get(7), 8, "PGS", FormatType.SUBTITLES, Iso639Language.FRENCH);
+        assertTrack(tracks.get(8), 9, "PGS", FormatType.SUBTITLES, Iso639Language.ITALIAN);
+        assertTrack(tracks.get(9), 10, "PGS", FormatType.SUBTITLES, Iso639Language.JAPANESE);
+        assertTrack(tracks.get(10), 11, "PGS", FormatType.SUBTITLES, Iso639Language.DUTCH);
+        assertTrack(tracks.get(11), 12, "PGS", FormatType.SUBTITLES, Iso639Language.NORWEGIAN);
+        assertTrack(tracks.get(12), 13, "PGS", FormatType.SUBTITLES, Iso639Language.FINNISH);
+        assertTrack(tracks.get(13), 14, "PGS", FormatType.SUBTITLES, Iso639Language.SWEDISH);
+        assertTrack(tracks.get(14), 15, "PGS", FormatType.SUBTITLES, Iso639Language.UNDETERMINED);
+    }
+
+    @Test
     public void scanAndParseFile_new_truehd_parsesBracketedCodesAndQuotedNames() throws Exception {
         final FileScanner scanner = scannerReturning(0, MKV_FILE_TRUEHD_NEW);
 
@@ -582,12 +625,12 @@ public class Eac3toScannerTest {
 
     private static void assertTrack(final Track track, final int number, final String name, final String formatName,
             final FormatType formatType, final Iso639Language language) {
-        assertEquals(number, track.getNumber());
-        assertEquals(name, track.getName());
-        assertNotNull(track.getFormat());
-        assertEquals(formatName, track.getFormat().getName());
-        assertEquals(formatType, track.getFormat().getFormatType());
-        assertEquals(language, track.getLanguage());
+        assertEquals(number, track.getNumber(), "number: track " + number);
+        assertEquals(name, track.getName(), "name: track " + number);
+        assertNotNull(track.getFormat(), "format: track " + number);
+        assertEquals(formatName, track.getFormat().getName(), "formatName: track " + number);
+        assertEquals(formatType, track.getFormat().getFormatType(), "formatType: track " + number);
+        assertEquals(language, track.getLanguage(), "language: track " + number);
     }
 
     /**
